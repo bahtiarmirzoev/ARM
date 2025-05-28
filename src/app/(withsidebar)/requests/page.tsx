@@ -1,8 +1,8 @@
 
-export default function Reports() {
+export default function Requests() {
     return(
         <div className="h-full">
-            Reports page
+            Requests page
         </div>
     )
 }

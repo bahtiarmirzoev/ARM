@@ -30,11 +30,11 @@ const routes = [
     description: "Manage auto services"
   },
   {
-    label: 'Reports',
+    label: 'Requests',
     icon: FileBarChart,
-    href: '/reports',
+    href: '/requests',
     color: "text-amber-500",
-    description: "View analytics reports"
+    description: "View partnership requests"
   },
 ];
 
