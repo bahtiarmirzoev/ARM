@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Tizen IPTV App</title>
+    <style>
+      :root {
+        --primary-color: #2196f3;
+        --secondary-color: #1976d2;
+        --background-color: #121212;
+        --surface-color: #1e1e1e;
+        --text-color: #ffffff;
+        --text-secondary: #b0b0b0;
+        --success-color: #4caf50;
+        --error-color: #f44336;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: "Segoe UI", Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+      }
+
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        color: var(--primary-color);
+        text-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+      }
+
+      .playlist-upload {
+        margin: 20px auto;
+        text-align: center;
+      }
+
+      .upload-btn {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.1em;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .upload-btn:hover {
+        background-color: var(--secondary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+      }
+
+      .upload-btn input[type="file"] {
+        display: none;
+      }
+
+      .container {
+        display: flex;
+        gap: 30px;
+        flex: 1;
+        position: relative;
+      }
+
+      .channel-list {
+        flex: 0 0 300px;
+        background-color: var(--surface-color);
+        border-radius: 10px;
+        padding: 20px;
+        overflow-y: auto;
+        max-height: calc(100vh - 200px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .channel-list h2 {
+        font-size: 1.5em;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .channel-item {
+        padding: 15px;
+        margin: 10px 0;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .channel-item:hover,
+      .channel-item.active {
+        background-color: var(--primary-color);
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+      }
+
+      .channel-item .number {
+        color: var(--text-secondary);
+        min-width: 30px;
+      }
+
+      .channel-item .name {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .video-container {
+        flex: 1;
+        background-color: var(--surface-color);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        position: relative;
+      }
+
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background-color: #000;
+      }
+
+      .now-playing {
+        padding: 20px;
+        background-color: rgba(0, 0, 0, 0.7);
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 8px;
+        display: none;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .now-playing.active {
+        display: block;
+        animation: slideUp 0.3s ease-out;
+      }
+
+      .status-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        display: none;
+        animation: slideIn 0.3s ease-out;
+        z-index: 1000;
+      }
+
+      .status-message.success {
+        background-color: var(--success-color);
+      }
+
+      .status-message.error {
+        background-color: var(--error-color);
+      }
+
+      /* Стили для фокуса (для TV) */
+      .channel-item:focus {
+        outline: 3px solid var(--primary-color);
+        outline-offset: 2px;
+      }
+
+      /* Анимации */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translate(-50%, 20px);
+          opacity: 0;
+        }
+        to {
+          transform: translate(-50%, 0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 0.3s ease-in;
+      }
+
+      /* Стили для скроллбара */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--surface-color);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary-color);
+      }
+
+      /* Загрузчик */
+      .loader {
+        display: none;
+        width: 48px;
+        height: 48px;
+        border: 5px solid var(--text-secondary);
+        border-bottom-color: var(--primary-color);
+        border-radius: 50%;
+        animation: rotation 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes rotation {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Добавляем стили для кнопок пульта */
+      .remote-control {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--surface-color);
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        display: none;
+      }
+
+      .remote-control.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in;
+      }
+
+      .remote-btn {
+        width: 50px;
+        height: 50px;
+        margin: 5px;
+        border: none;
+        border-radius: 8px;
+        background: var(--primary-color);
+        color: white;
+        font-size: 1.2em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .remote-btn:hover,
+      .remote-btn:focus {
+        background: var(--secondary-color);
+        transform: scale(1.1);
+      }
+
+      .remote-btn:active {
+        transform: scale(0.95);
+      }
+
+      .remote-row {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+      }
+
+      /* Стили для кнопки показа/скрытия пульта */
+      .toggle-remote {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+
+      .toggle-remote:hover {
+        background: var(--secondary-color);
+        transform: scale(1.1);
+      }
+
+      /* Стили для подсказок */
+      .key-hint {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 0.9em;
+        display: none;
+      }
+
+      .key-hint.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>📺 IPTV Player</h1>
+      <div class="playlist-upload">
+        <label class="upload-btn" tabindex="0" role="button">
+          <span>📂 Загрузить плейлист</span>
+          <input type="file" accept=".m3u,.m3u8" id="playlistInput" />
+        </label>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="channel-list">
+        <h2>📋 Каналы</h2>
+        <div class="loader" id="loader"></div>
+        <ul id="channelList">
+          Выберите плейлист для загрузки
+        </ul>
+      </div>
+
+      <div class="video-container">
+        <video id="videoPlayer" controls autoplay></video>
+        <div class="now-playing" id="nowPlaying">
+          <h3 id="currentChannel">Выберите канал</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-message" id="statusMessage"></div>
+
+    <!-- Кнопка показа/скрытия пульта -->
+    <button class="toggle-remote" id="toggleRemote" title="Показать пульт">
+      🎮
+    </button>
+
+    <!-- Пульт управления -->
+    <div class="remote-control" id="remoteControl">
+      <div class="remote-row">
+        <button class="remote-btn" data-key="ArrowUp">⬆️</button>
+      </div>
+      <div class="remote-row">
+        <button class="remote-btn" data-key="ArrowLeft">⬅️</button>
+        <button class="remote-btn" data-key="Enter">OK</button>
+        <button class="remote-btn" data-key="ArrowRight">➡️</button>
+      </div>
+      <div class="remote-row">
+        <button class="remote-btn" data-key="ArrowDown">⬇️</button>
+      </div>
+    </div>
+
+    <!-- Подсказки по клавишам -->
+    <div class="key-hint" id="keyHint">
+      <p>⬆️⬇️ - Навигация по каналам</p>
+      <p>OK - Выбрать канал</p>
+      <p>🎮 - Показать/скрыть пульт</p>
+    </div>
+
+    <script>
+      const playlistInput = document.getElementById("playlistInput");
+      const listEl = document.getElementById("channelList");
+      const videoPlayer = document.getElementById("videoPlayer");
+      const nowPlaying = document.getElementById("nowPlaying");
+      const currentChannel = document.getElementById("currentChannel");
+      const loader = document.getElementById("loader");
+      const statusMessage = document.getElementById("statusMessage");
+      const toggleRemote = document.getElementById("toggleRemote");
+      const remoteControl = document.getElementById("remoteControl");
+      const keyHint = document.getElementById("keyHint");
+
+      // Показываем подсказки при запуске
+      keyHint.classList.add("active");
+      setTimeout(() => {
+        keyHint.classList.remove("active");
+      }, 5000);
+
+      // Обработка кнопки пульта
+      toggleRemote.addEventListener("click", () => {
+        remoteControl.classList.toggle("active");
+      });
+
+      // Обработка кнопок пульта
+      document.querySelectorAll(".remote-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const key = btn.dataset.key;
+          simulateKeyPress(key);
+        });
+      });
+
+      // Функция для симуляции нажатия клавиши
+      function simulateKeyPress(key) {
+        const event = new KeyboardEvent("keydown", {
+          key: key,
+          code: key,
+          keyCode:
+            key === "Enter"
+              ? 13
+              : key === "ArrowUp"
+              ? 38
+              : key === "ArrowDown"
+              ? 40
+              : key === "ArrowLeft"
+              ? 37
+              : key === "ArrowRight"
+              ? 39
+              : 0,
+          which:
+            key === "Enter"
+              ? 13
+              : key === "ArrowUp"
+              ? 38
+              : key === "ArrowDown"
+              ? 40
+              : key === "ArrowLeft"
+              ? 37
+              : key === "ArrowRight"
+              ? 39
+              : 0,
+          bubbles: true,
+        });
+        document.dispatchEvent(event);
+      }
+
+      // Обработка загрузки плейлиста
+      playlistInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          loader.style.display = "block";
+          listEl.innerHTML = "";
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            try {
+              parseM3U(event.target.result);
+              showStatus("Плейлист успешно загружен", "success");
+            } catch (error) {
+              showStatus("Ошибка при загрузке плейлиста", "error");
+              listEl.innerHTML =
+                '<li class="channel-item">Ошибка загрузки плейлиста</li>';
+            }
+            loader.style.display = "none";
+          };
+          reader.onerror = () => {
+            showStatus("Ошибка при чтении файла", "error");
+            loader.style.display = "none";
+          };
+          reader.readAsText(file);
+        }
+      });
+
+      // Обработка клика по кнопке загрузки
+      document.querySelector(".upload-btn").addEventListener("click", () => {
+        playlistInput.click();
+      });
+
+      // Обработка Enter на кнопке загрузки
+      document.querySelector(".upload-btn").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          playlistInput.click();
+        }
+      });
+
+      function showStatus(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.className = `status-message ${type}`;
+        statusMessage.style.display = "block";
+        setTimeout(() => {
+          statusMessage.style.display = "none";
+        }, 3000);
+      }
+
+      function parseM3U(data) {
+        const lines = data.split("\n");
+        const channels = [];
+        let name = "";
+
+        lines.forEach((line) => {
+          if (line.startsWith("#EXTINF")) {
+            name = line.split(",")[1] || "Без названия";
+          } else if (line.startsWith("http")) {
+            channels.push({ name, url: line });
+          }
+        });
+
+        if (channels.length === 0) {
+          throw new Error("No channels found in playlist");
+        }
+
+        listEl.innerHTML = "";
+        channels.forEach((channel, i) => {
+          const li = document.createElement("li");
+          li.className = "channel-item";
+          li.innerHTML = `
+            <span class="number">${i + 1}.</span>
+            <span class="name">${channel.name}</span>
+          `;
+          li.dataset.url = channel.url;
+          li.onclick = () => playChannel(channel);
+          li.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              playChannel(channel);
+            }
+          };
+          listEl.appendChild(li);
+        });
+
+        // Устанавливаем фокус на первый канал
+        if (channels.length > 0) {
+          listEl.firstChild.focus();
+        }
+      }
+
+      function playChannel(channel) {
+        videoPlayer.src = channel.url;
+        videoPlayer.play().catch((error) => {
+          showStatus("Ошибка воспроизведения канала", "error");
+        });
+
+        currentChannel.textContent = channel.name;
+        nowPlaying.classList.add("active");
+
+        document.querySelectorAll(".channel-item").forEach((item) => {
+          item.classList.remove("active");
+          if (item.textContent.includes(channel.name)) {
+            item.classList.add("active");
+          }
+        });
+
+        setTimeout(() => {
+          nowPlaying.classList.remove("active");
+        }, 3000);
+      }
+
+      // Обработка клавиш для навигации
+      document.addEventListener("keydown", (e) => {
+        const activeItem =
+          document.querySelector(".channel-item.active") ||
+          document.querySelector(".channel-item");
+
+        if (!activeItem) return;
+
+        switch (e.key) {
+          case "ArrowUp":
+            e.preventDefault();
+            const prevItem = activeItem.previousElementSibling;
+            if (prevItem) {
+              activeItem.classList.remove("active");
+              prevItem.classList.add("active");
+              prevItem.focus();
+            }
+            break;
+          case "ArrowDown":
+            e.preventDefault();
+            const nextItem = activeItem.nextElementSibling;
+            if (nextItem) {
+              activeItem.classList.remove("active");
+              nextItem.classList.add("active");
+              nextItem.focus();
+            }
+            break;
+          case "Enter":
+            e.preventDefault();
+            const channelName = activeItem.querySelector(".name").textContent;
+            const channelUrl = activeItem.dataset.url;
+            if (channelUrl) {
+              playChannel({ name: channelName, url: channelUrl });
+            }
+            break;
+        }
+      });
+    </script>
+  </body>
+</html>

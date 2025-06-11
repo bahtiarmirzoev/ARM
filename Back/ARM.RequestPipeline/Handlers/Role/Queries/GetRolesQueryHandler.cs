@@ -1,0 +1,14 @@
+using ARM.Core.Abstractions.Services.Main;
+using ARM.Core.Dtos.Read;
+using ARM.RequestPipeline.Queries.Role;
+using MediatR;
+
+namespace ARM.RequestPipeline.Handlers.Role.Queries;
+
+public class GetRolesQueryHandler(IRoleService roleService) : IRequestHandler<GetRolesQuery, IEnumerable<RoleDto>>
+{
+    public async Task<IEnumerable<RoleDto>> Handle(GetRolesQuery request, CancellationToken cancellationToken)
+    {
+        return await roleService.GetAllRolesAsync();
+    }
+}
