@@ -6,7 +6,7 @@ namespace ARM.Core.Entities.Main;
 public class RepairOrderEntity
 {
     public string Id { get; set; } = Generate(size: 24);
-    public string UserId { get; set; } = string.Empty;
+    public string CustomerId { get; set; } = string.Empty;
     public string CarId { get; set; } = string.Empty;
     public string AutoServiceId { get; set; } = string.Empty;
     public string ServiceTypeId { get; set; } = string.Empty;
@@ -19,7 +19,7 @@ public class RepairOrderEntity
     public ServiceStatus ServiceStatus { get; set; } = ServiceStatus.NotDone;
     public decimal EstimatedCost { get; set; }
     public string CustomerComments { get; set; } = string.Empty;
-    public UserEntity User { get; set; } = null!;
+    public CustomerEntity Customer { get; set; } = null!;
     public CarEntity Car { get; set; } = null!;
     public BrandEntity Brand { get; set; } = null!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

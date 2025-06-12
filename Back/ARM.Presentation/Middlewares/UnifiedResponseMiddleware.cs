@@ -22,13 +22,6 @@ public class UnifiedResponseMiddleware
             await _next(context);
             return;
         }
-        
-        if (context.Request.Method == HttpMethods.Get)
-        {
-            await _next(context);
-            return;
-        }
-
         var originalBodyStream = context.Response.Body;
         using var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
@@ -58,64 +51,62 @@ public class UnifiedResponseMiddleware
 
     private string WrapSuccess(HttpContext context, string original)
     {
-        var data = DeserializeAndConvertToArray(original ?? "{}");
+        var data = JsonSerializer.Deserialize<object>(original ?? "{}");
         var meta = BuildMeta(context, context.Response.StatusCode);
-        var metaArray = ConvertObjectToArray(meta);
 
-        var responseArray = new[]
+        var response = new
         {
-            
-            data,
-            "ok",
-            metaArray,
+            status = "ok",
+            response = data,
+            meta
         };
 
-        return JsonSerializer.Serialize(responseArray, JsonOpts());
+        return JsonSerializer.Serialize(response, JsonOpts());
     }
 
     private async Task HandleAppException(HttpContext context, AppException ex)
     {
+        var lang = GetLanguageFromRequest(context);
         var code = GetStatusCodeForExceptionType(ex.ExceptionType);
         var meta = BuildMeta(context, code);
-        var metaArray = ConvertObjectToArray(meta);
 
-        var errorArray = new[]
+        var errorResponse = new
         {
-            ex.Message,
-            ex.ExceptionType.ToString(),
-            metaArray,
-            "fail"
+            status = "fail",
+            code,
+            message = ex.Message,
+            ex = ex.ExceptionType.ToString(),
+            meta
         };
 
         context.Response.StatusCode = code;
         context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(JsonSerializer.Serialize(errorArray, JsonOpts()));
+        await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse, JsonOpts()));
     }
 
     private async Task HandleUnhandledException(HttpContext context, Exception ex)
     {
         var meta = BuildMeta(context, 500);
-        var metaArray = ConvertObjectToArray(meta);
 
-        var errorArray = new[]
+        var errorResponse = new
         {
-            500,
-            ex.Message,
-            "InternalServerError",
-            metaArray,
-            "fail"
+            status = "fail",
+            code = 500,
+            message = ex.Message,
+            ex = "InternalServerError",
+            meta
         };
 
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(JsonSerializer.Serialize(errorArray, JsonOpts()));
+        await context.Response.WriteAsync(JsonSerializer.Serialize(errorResponse, JsonOpts()));
     }
 
     private object BuildMeta(HttpContext context, int statusCode)
     {
         return new
         {
-            status = statusCode,
+            code = statusCode,
             timestamp = DateTime.UtcNow.ToString("o"),
             unix = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
             execMs = DateTime.UtcNow.Millisecond,
@@ -159,60 +150,13 @@ public class UnifiedResponseMiddleware
         };
     }
 
-    private object DeserializeAndConvertToArray(string json)
+    private static string GetLanguageFromRequest(HttpContext context)
     {
-        var doc = JsonDocument.Parse(json);
-        return ConvertJsonElementToArray(doc.RootElement);
-    }
+        var queryLang = context.Request.Query["lang"].ToString().ToLower();
+        var headerLang = context.Request.Headers["Accept-Language"].ToString().Split(',')[0].ToLower();
 
-    private object ConvertObjectToArray(object obj)
-    {
-        // Для анонимных объектов (типа мета) — сериализуем в JsonDocument и конвертируем
-        var json = JsonSerializer.Serialize(obj, JsonOpts());
-        using var doc = JsonDocument.Parse(json);
-        return ConvertJsonElementToArray(doc.RootElement);
-    }
-
-    private object ConvertJsonElementToArray(JsonElement element)
-    {
-        switch (element.ValueKind)
-        {
-            case JsonValueKind.Object:
-                // Обход всех свойств, собираем их значения в массив
-                var list = new List<object>();
-                foreach (var prop in element.EnumerateObject())
-                {
-                    list.Add(ConvertJsonElementToArray(prop.Value));
-                }
-                return list.ToArray();
-
-            case JsonValueKind.Array:
-                var arr = new List<object>();
-                foreach (var item in element.EnumerateArray())
-                {
-                    arr.Add(ConvertJsonElementToArray(item));
-                }
-                return arr.ToArray();
-
-            case JsonValueKind.String:
-                return element.GetString();
-
-            case JsonValueKind.Number:
-                if (element.TryGetInt64(out long l)) return l;
-                if (element.TryGetDouble(out double d)) return d;
-                return null;
-
-            case JsonValueKind.True:
-                return true;
-
-            case JsonValueKind.False:
-                return false;
-
-            case JsonValueKind.Null:
-                return null;
-
-            default:
-                return null;
-        }
+        return (queryLang is "ru" or "az" or "en") ? queryLang
+             : (headerLang is "ru" or "az" or "en") ? headerLang
+             : "en";
     }
 }

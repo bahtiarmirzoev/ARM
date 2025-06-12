@@ -9,8 +9,6 @@ public class ServiceRequestConfiguration : IEntityTypeConfiguration<ServiceReque
 {
     public void Configure(EntityTypeBuilder<ServiceRequestEntity> builder)
     {
-        builder.ToTable("MakeOrderRequests");
-        
         builder.Property(a => a.Id).HasMaxLength(24);
         builder.Property(a => a.AutoRepairId).HasMaxLength(24);
         builder.Property(a => a.ServiceId).HasMaxLength(24);

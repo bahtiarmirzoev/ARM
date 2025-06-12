@@ -13,6 +13,7 @@ using ARM.Core.Dtos.Read;
 using ARM.Core.Dtos.Update;
 using ARM.Core.Entities.Main;
 using ARM.Core.Enums;
+using NanoidDotNet;
 
 namespace ARM.Application.Services.Main;
 
@@ -22,6 +23,7 @@ public class BrandService : IBrandService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IBrandRepository _brandRepository;
     private readonly IServiceRepository _serviceRepository;
+    private readonly IVenueRepository _venueRepository;
     private readonly IValidator<CreateBrandDto> _createAutoServiceValidator;
     private readonly IValidator<UpdateBrandDto> _updateAutoServiceValidator;
     private readonly IUnitOfWork _unitOfWork;
@@ -31,6 +33,7 @@ public class BrandService : IBrandService
         IHttpContextAccessor httpContextAccessor,
         IBrandRepository brandRepository,
         IServiceRepository serviceRepository,
+        IVenueRepository venueRepository,
         IValidator<CreateBrandDto> createAutoServiceValidator,
         IValidator<UpdateBrandDto> updateAutoServiceValidator,
         IUnitOfWork unitOfWork)
@@ -39,6 +42,7 @@ public class BrandService : IBrandService
         _httpContextAccessor = httpContextAccessor;
         _brandRepository = brandRepository;
         _serviceRepository = serviceRepository;
+        _venueRepository = venueRepository;
         _createAutoServiceValidator = createAutoServiceValidator;
         _updateAutoServiceValidator = updateAutoServiceValidator;
         _unitOfWork = unitOfWork;
@@ -49,7 +53,7 @@ public class BrandService : IBrandService
         await _createAutoServiceValidator.ValidateAndThrowAsync(dto);
         var autoServiceEntity = _mapper.Map<BrandEntity>(dto);
         autoServiceEntity.Services = new List<ServiceEntity>();
-        
+
         foreach (var serviceDto in dto.Services)
         {
             var serviceEntity = new ServiceEntity
@@ -64,13 +68,25 @@ public class BrandService : IBrandService
 
             autoServiceEntity.Services.Add(serviceEntity);
         }
-        
+
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             await _brandRepository.AddAsync(autoServiceEntity);
             
+            if (dto.Venues.Any())
+            {
+                foreach (var venueDto in dto.Venues)
+                {
+                    var venueEntity = _mapper.Map<VenueEntity>(venueDto);
+                    venueEntity.BrandId = autoServiceEntity.Id;
+                    venueEntity.Brand = autoServiceEntity;
+                    venueEntity.Services = autoServiceEntity.Services;
+                    await _venueRepository.AddAsync(venueEntity);
+                }
+            }
+
             return _mapper.Map<BrandDto>(autoServiceEntity);
-        }); 
+        });
     }
 
     public async Task<BrandDto> UpdateAsync(string id, UpdateBrandDto dto)
@@ -79,14 +95,14 @@ public class BrandService : IBrandService
                 a => a.Id == id))
             .FirstOrDefault()
             .EnsureFound("AutoServiceNotFound");
-        
+
         await _updateAutoServiceValidator.ValidateAndThrowAsync(dto);
-        
+
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             _mapper.Map(dto, existingAutoService);
             await _brandRepository.UpdateAsync(new[] { existingAutoService });
-            
+
             return _mapper.Map<BrandDto>(existingAutoService);
         });
     }
@@ -157,15 +173,15 @@ public class BrandService : IBrandService
 
     public async Task<IEnumerable<BrandDto>> GetByWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime)
     {
-        var autoServices = await _brandRepository.FindAsync(a => 
+        var autoServices = await _brandRepository.FindAsync(a =>
             a.WorkingHours.Any(w => w.OpenTime <= startTime && w.CloseTime >= endTime));
         return _mapper.Map<IEnumerable<BrandDto>>(autoServices);
     }
-    
+
 
     public async Task<IEnumerable<BrandDto>> GetByPriceRangeAsync(decimal minPrice, decimal maxPrice)
     {
-        var autoServices = await _brandRepository.FindAsync(a => 
+        var autoServices = await _brandRepository.FindAsync(a =>
             a.Services.Any(s => s.Price >= minPrice && s.Price <= maxPrice));
         return _mapper.Map<IEnumerable<BrandDto>>(autoServices);
     }
@@ -332,7 +348,7 @@ public class BrandService : IBrandService
 
         return new Dictionary<string, decimal>
         {
-            { "AverageServiceTime", completedRequests.Any() 
+            { "AverageServiceTime", completedRequests.Any()
                 ? (decimal)completedRequests.Average(r => (r.UpdatedAt!.Value - r.CreatedAt).TotalHours)
                 : 0 }
         };
@@ -373,4 +389,4 @@ public class BrandService : IBrandService
     {
         return degrees * Math.PI / 180;
     }
-} 
+}

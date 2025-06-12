@@ -16,7 +16,7 @@ public class RepairOrderRepository : IRepairOrderRepository
 
     public async Task<RepairOrderEntity> GetByIdAsync(string id)
         => await _context.RepairOrders
-               .Include(ro => ro.User) 
+               .Include(ro => ro.Customer)
                .Include(ro => ro.Car)
                .Include(ro => ro.Brand)
                .AsNoTracking()
@@ -26,7 +26,7 @@ public class RepairOrderRepository : IRepairOrderRepository
     public async Task<IEnumerable<RepairOrderEntity>> GetAllAsync()
     {
         var orders = await _context.RepairOrders
-            .Include(ro => ro.User)
+            .Include(ro => ro.Customer)
             .Include(ro => ro.Car)
             .Include(ro => ro.Brand)
             .AsNoTracking()
@@ -45,7 +45,7 @@ public class RepairOrderRepository : IRepairOrderRepository
             var result = await _context.RepairOrders
                 .Where(ro => ro.Id == order.Id)
                 .ExecuteUpdateAsync(ro => ro
-                    .SetProperty(ro => ro.UserId, order.UserId)
+                    .SetProperty(ro => ro.CustomerId, order.CustomerId)
                     .SetProperty(ro => ro.CarId, order.CarId)
                     .SetProperty(ro => ro.AutoServiceId, order.AutoServiceId)
                     .SetProperty(ro => ro.ServiceTypeId, order.ServiceTypeId)
@@ -68,7 +68,7 @@ public class RepairOrderRepository : IRepairOrderRepository
     public async Task DeleteAsync(string id)
     {
         var result = await _context.RepairOrders
-            .Include(ro => ro.User)
+            .Include(ro => ro.Customer)
             .Include(ro => ro.Car)
             .Include(ro => ro.Brand)
             .Where(ro => ro.Id == id)
@@ -83,7 +83,7 @@ public class RepairOrderRepository : IRepairOrderRepository
 
     public async Task<ICollection<RepairOrderEntity>> FindAsync(Expression<Func<RepairOrderEntity, bool>> predicate)
         => await _context.RepairOrders
-            .Include(ro => ro.User)
+            .Include(ro => ro.Customer)
             .Include(ro => ro.Car)
             .Include(ro => ro.Brand)
             .AsNoTracking()

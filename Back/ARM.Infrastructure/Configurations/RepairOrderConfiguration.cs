@@ -9,14 +9,13 @@ public class RepairOrderConfiguration : IEntityTypeConfiguration<RepairOrderEnti
 {
     public void Configure(EntityTypeBuilder<RepairOrderEntity> builder)
     {
-        builder.ToTable("RepairOrders");
         builder.HasKey(ro => ro.Id);
 
         builder.Property(a => a.Id).HasMaxLength(24);
         builder.Property(a => a.AutoServiceId).HasMaxLength(24);
         builder.Property(a => a.CarId).HasMaxLength(24);
         builder.Property(a => a.ServiceTypeId).HasMaxLength(24);
-        builder.Property(a => a.UserId).HasMaxLength(24);
+        builder.Property(a => a.CustomerId).HasMaxLength(24);
         builder.Property(x => x.OrderDate).IsRequired();
         builder.Property(x => x.ScheduledDate).IsRequired();
         builder.Property(x => x.EstimatedDuration).IsRequired();
@@ -26,10 +25,10 @@ public class RepairOrderConfiguration : IEntityTypeConfiguration<RepairOrderEnti
         builder.Property(x => x.CustomerComments).HasMaxLength(1000);
         builder.Property(x => x.CancellationReason).HasMaxLength(500);
         builder.Property(x => x.ServiceStatus).IsRequired().HasConversion<string>();
-        
-        builder.HasOne(x => x.User)
+
+        builder.HasOne(x => x.Customer)
             .WithMany(x => x.RepairOrders)
-            .HasForeignKey(x => x.UserId)
+            .HasForeignKey(x => x.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(x => x.Car)
@@ -41,11 +40,10 @@ public class RepairOrderConfiguration : IEntityTypeConfiguration<RepairOrderEnti
             .WithMany()
             .HasForeignKey(x => x.AutoServiceId)
             .OnDelete(DeleteBehavior.Restrict);
-        
-        
+
         builder.HasIndex(x => x.OrderDate);
         builder.HasIndex(x => x.ScheduledDate);
         builder.HasIndex(x => x.ServiceStatus);
-        builder.HasIndex(x => new { x.UserId, x.ServiceStatus });
+        builder.HasIndex(x => new { x.CustomerId, x.ServiceStatus });
     }
 }

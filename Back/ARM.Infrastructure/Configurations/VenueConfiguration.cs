@@ -8,9 +8,8 @@ public class VenueConfiguration : IEntityTypeConfiguration<VenueEntity>
 {
     public void Configure(EntityTypeBuilder<VenueEntity> builder)
     {
-        builder.ToTable("Venues");
         builder.HasKey(v => v.Id);
-        
+
         builder.Property(v => v.Id).HasMaxLength(24);
         builder.Property(v => v.BrandId).HasMaxLength(24);
         builder.Property(v => v.Name).IsRequired().HasMaxLength(100);
@@ -22,13 +21,11 @@ public class VenueConfiguration : IEntityTypeConfiguration<VenueEntity>
         builder.Property(v => v.IsOpen).IsRequired().HasDefaultValue(true);
 
         builder.HasMany(v => v.Services)
-            .WithOne(s => s.Venue)
-            .HasForeignKey(s => s.VenueId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .WithMany(s => s.Venues)
+            .UsingEntity(j => j.ToTable("VenueServices"));
 
-      
         builder.HasOne(v => v.Brand)
-            .WithMany(b => b.Venues) 
+            .WithMany(b => b.Venues)
             .HasForeignKey(v => v.BrandId)
             .OnDelete(DeleteBehavior.Cascade);
 

@@ -9,7 +9,6 @@ public class RepairLogConfiguration : IEntityTypeConfiguration<RepairLogEntity>
 {
     public void Configure(EntityTypeBuilder<RepairLogEntity> builder)
     {
-        builder.ToTable("RepairLogs");
         builder.HasKey(r => r.Id); 
 
         builder.Property(a => a.Id).HasMaxLength(24);

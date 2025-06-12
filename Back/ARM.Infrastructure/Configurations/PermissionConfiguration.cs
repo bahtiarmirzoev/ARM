@@ -9,8 +9,6 @@ public class PermissionConfiguration : IEntityTypeConfiguration<PermissionEntity
 {
     public void Configure(EntityTypeBuilder<PermissionEntity> builder)
     {
-        builder.ToTable("Permissions");
-
         builder.HasKey(p => p.Id);
         builder.Property(a => a.Id).HasMaxLength(24);
 

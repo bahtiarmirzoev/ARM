@@ -16,9 +16,6 @@ public class BrandDto
     public bool HasWaitingRoom { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
+    public ICollection<VenueDto> Venues { get; set; } = [];
     public ICollection<WorkingHourDto> WorkingHours { get; set; } = [];
-    public ICollection<ServiceDto> Services { get; set; } = [];
-    public ICollection<ReviewDto> Reviews { get; set; } = [];
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
 }

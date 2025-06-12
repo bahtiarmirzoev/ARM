@@ -2,7 +2,7 @@
 
 public enum ExceptionType
 {
-    InvalidToken, 
+    InvalidToken = 1, 
     InvalidRefreshToken, 
     InvalidCredentials,
     UserNotFound, 

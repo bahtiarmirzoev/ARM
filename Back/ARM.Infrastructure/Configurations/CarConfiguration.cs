@@ -9,8 +9,6 @@ public class CarConfiguration : IEntityTypeConfiguration<CarEntity>
 {
     public void Configure(EntityTypeBuilder<CarEntity> builder)
     {
-        builder.ToTable("Cars");
-        
         builder.Property(a => a.Id).HasMaxLength(24);
         builder.Property(a => a.OwnerId).HasMaxLength(24);
         builder.Property(x => x.Make).IsRequired().HasMaxLength(50);
@@ -22,8 +20,8 @@ public class CarConfiguration : IEntityTypeConfiguration<CarEntity>
         builder.Property(x => x.EngineType).HasMaxLength(30);
         builder.Property(x => x.EngineVolume).HasPrecision(3, 1);
         builder.Property(x => x.Transmission).HasMaxLength(30);
-        
-        builder.HasOne(x => x.Owner)
+
+        builder.HasOne(x => x.Customer)
             .WithMany(x => x.Cars)
             .HasForeignKey(x => x.OwnerId)
             .OnDelete(DeleteBehavior.Cascade);
@@ -32,7 +30,7 @@ public class CarConfiguration : IEntityTypeConfiguration<CarEntity>
             .WithOne(x => x.Car)
             .HasForeignKey(x => x.CarId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         builder.HasIndex(x => x.CarPlate).IsUnique();
         builder.HasIndex(x => x.VIN).IsUnique();
     }

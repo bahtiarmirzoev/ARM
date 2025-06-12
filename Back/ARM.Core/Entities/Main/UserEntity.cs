@@ -11,18 +11,13 @@ public class UserEntity
     public string Email { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
-    public string Address { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public string? ProfilePicture { get; set; }
     public bool EmailVerified { get; set; }
-    public DateTime RegisteredAt { get; set; } = DateTime.UtcNow;
-    public ICollection<CarEntity> Cars { get; set; } = [];
-    public ICollection<RepairOrderEntity> RepairOrders { get; set; } = [];
-    public ICollection<ReviewEntity> Reviews { get; set; } = [];
     public string RoleId { get; set; } = string.Empty;
     public RoleEntity Role { get; set; } = null!;
     public string BrandId { get; set; } = string.Empty;
-    public BrandEntity? Brand { get; set; }
+    public BrandEntity Brand { get; set; } = null!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }

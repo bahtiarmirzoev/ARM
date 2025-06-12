@@ -41,57 +41,57 @@ public class RepairOrderService : IRepairOrderService
         _unitOfWork = unitOfWork;
     }
 
-    private string GetUserId()
+    private string GetCustomerId()
     {
-        var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId))
+        var customerId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(customerId))
             throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
 
-        return userId;
+        return customerId;
     }
 
     public async Task<RepairOrderDto> CreateAsync(CreateRepairOrderDto dto)
     {
-        var userId = GetUserId();
+        var customerId = GetCustomerId();
         await _createRepairOrderValidator.ValidateAndThrowAsync(dto);
 
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             var repairOrderEntity = _mapper.Map<RepairOrderEntity>(dto);
-            repairOrderEntity.UserId = userId;
+            repairOrderEntity.CustomerId = customerId;
             repairOrderEntity.OrderDate = DateTime.UtcNow;
             repairOrderEntity.ServiceStatus = ServiceStatus.NotDone;
-            
+
             await _repairOrderRepository.AddAsync(repairOrderEntity);
-            
+
             return _mapper.Map<RepairOrderDto>(repairOrderEntity);
         });
     }
 
     public async Task<RepairOrderDto> UpdateAsync(string id, UpdateRepairOrderDto dto)
     {
-        var userId = GetUserId();
+        var customerId = GetCustomerId();
         var existingOrder = (await _repairOrderRepository.FindAsync(
-                o => o.Id == id && o.UserId == userId))
+                o => o.Id == id && o.CustomerId == customerId))
             .FirstOrDefault()
             .EnsureFound("RepairOrderNotFound");
-        
+
         await _updateRepairOrderValidator.ValidateAndThrowAsync(dto);
-        
+
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             _mapper.Map(dto, existingOrder);
             await _repairOrderRepository.UpdateAsync(new[] { existingOrder });
-            
+
             return _mapper.Map<RepairOrderDto>(existingOrder);
         });
     }
 
     public async Task<bool> DeleteAsync(string id)
     {
-        var userId = GetUserId();
+        var customerId = GetCustomerId();
         var order = (await _repairOrderRepository.FindAsync(
-                o => o.Id == id && o.UserId == userId))
+                o => o.Id == id && o.CustomerId == customerId))
             .FirstOrDefault()
             .EnsureFound("RepairOrderNotFound");
 
@@ -110,8 +110,8 @@ public class RepairOrderService : IRepairOrderService
 
     public async Task<IEnumerable<RepairOrderDto>> GetAllAsync()
     {
-        var userId = GetUserId();
-        var orders = await _repairOrderRepository.FindAsync(u => u.UserId == userId);
+        var customerId = GetCustomerId();
+        var orders = await _repairOrderRepository.FindAsync(u => u.CustomerId == customerId);
         return _mapper.Map<IEnumerable<RepairOrderDto>>(orders);
     }
 
@@ -129,4 +129,4 @@ public class RepairOrderService : IRepairOrderService
         var orders = await _repairOrderRepository.FindAsync(o => o.ServiceStatus == serviceStatus);
         return _mapper.Map<IEnumerable<RepairOrderDto>>(orders);
     }
-} 
+}

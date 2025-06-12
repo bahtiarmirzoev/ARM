@@ -16,7 +16,7 @@ public class ReviewRepository : IReviewRepository
 
     public async Task<ReviewEntity> GetByIdAsync(string id)
         => await _context.Reviews
-               .Include(r => r.User)
+               .Include(r => r.Customer)
                .Include(r => r.Brand)
                .AsNoTracking()
                .FirstOrDefaultAsync(r => r.Id == id)
@@ -25,7 +25,7 @@ public class ReviewRepository : IReviewRepository
     public async Task<IEnumerable<ReviewEntity>> GetAllAsync()
     {
         var reviews = await _context.Reviews
-            .Include(r => r.User)
+            .Include(r => r.Customer)
             .Include(r => r.Brand)
             .AsNoTracking()
             .ToListAsync();
@@ -45,7 +45,7 @@ public class ReviewRepository : IReviewRepository
                 .ExecuteUpdateAsync(r => r
                     .SetProperty(r => r.Rating, review.Rating)
                     .SetProperty(r => r.Comment, review.Comment)
-                    .SetProperty(r => r.UserId, review.UserId)
+                    .SetProperty(r => r.CustomerId, review.CustomerId)
                     .SetProperty(r => r.AutoServiceId, review.AutoServiceId)
                     .SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
 
@@ -69,7 +69,7 @@ public class ReviewRepository : IReviewRepository
 
     public async Task<ICollection<ReviewEntity>> FindAsync(Expression<Func<ReviewEntity, bool>> predicate)
         => await _context.Reviews
-            .Include(r => r.User)
+            .Include(r => r.Customer)
             .Include(r => r.Brand)
             .AsNoTracking()
             .Where(predicate)

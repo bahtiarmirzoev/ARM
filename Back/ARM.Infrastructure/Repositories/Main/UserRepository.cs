@@ -16,8 +16,7 @@ public class UserRepository : IUserRepository
 
     public async Task<UserEntity> GetByIdAsync(string id)
         => await _context.Users
-               .Include(u => u.Role) 
-               .Include(u => u.Cars) 
+               .Include(u => u.Role)
                .AsNoTracking()
                .FirstOrDefaultAsync(u => u.Id == id)
            ?? throw new AppException(ExceptionType.NotFound, "UserNotFound");
@@ -26,7 +25,6 @@ public class UserRepository : IUserRepository
     {
         var users = await _context.Users
             .Include(u => u.Role)
-            .Include(u => u.Cars)
             .AsNoTracking()
             .ToListAsync();
 
@@ -46,7 +44,7 @@ public class UserRepository : IUserRepository
                     .SetProperty(u => u.Name, user.Name)
                     .SetProperty(u => u.Surname, user.Surname)
                     .SetProperty(u => u.Email, user.Email)
-                    .SetProperty(u => u.Password, user.Password) 
+                    .SetProperty(u => u.Password, user.Password)
                     .SetProperty(u => u.EmailVerified, user.EmailVerified)
                     .SetProperty(u => u.RoleId, user.RoleId)
                     .SetProperty(u => u.UpdatedAt, DateTime.UtcNow));
@@ -60,7 +58,6 @@ public class UserRepository : IUserRepository
     {
         var result = await _context.Users
             .Include(u => u.Role)
-            .Include(u => u.Cars)
             .Where(u => u.Id == id)
             .ExecuteDeleteAsync();
 
@@ -74,7 +71,6 @@ public class UserRepository : IUserRepository
     public async Task<ICollection<UserEntity>> FindAsync(Expression<Func<UserEntity, bool>> predicate)
         => await _context.Users
             .Include(u => u.Role)
-            .Include(u => u.Cars)
             .AsNoTracking()
             .Where(predicate)
             .ToListAsync();

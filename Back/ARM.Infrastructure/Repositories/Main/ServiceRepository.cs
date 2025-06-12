@@ -16,7 +16,7 @@ public class ServiceRepository : IServiceRepository
 
     public async Task<ServiceEntity> GetByIdAsync(string id)
         => await _context.Services
-               .Include(s => s.AutoRepairs)
+               .Include(s => s.Venues)
                .AsNoTracking()
                .FirstOrDefaultAsync(s => s.Id == id)
            ?? throw new AppException(ExceptionType.NotFound, "ServiceNotFound");
@@ -24,7 +24,7 @@ public class ServiceRepository : IServiceRepository
     public async Task<IEnumerable<ServiceEntity>> GetAllAsync()
     {
         var services = await _context.Services
-            .Include(s => s.AutoRepairs)
+            .Include(s => s.Venues)
             .AsNoTracking()
             .ToListAsync();
 
@@ -55,7 +55,7 @@ public class ServiceRepository : IServiceRepository
     public async Task DeleteAsync(string id)
     {
         var result = await _context.Services
-            .Include(s => s.AutoRepairs)
+            .Include(s => s.Venues)
             .Where(s => s.Id == id)
             .ExecuteDeleteAsync();
 
@@ -68,7 +68,7 @@ public class ServiceRepository : IServiceRepository
 
     public async Task<ICollection<ServiceEntity>> FindAsync(Expression<Func<ServiceEntity, bool>> predicate)
         => await _context.Services
-            .Include(s => s.AutoRepairs)
+            .Include(s => s.Venues)
             .AsNoTracking()
             .Where(predicate)
             .ToListAsync();

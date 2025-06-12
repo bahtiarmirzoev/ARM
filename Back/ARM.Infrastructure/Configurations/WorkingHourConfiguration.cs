@@ -9,7 +9,6 @@ public class WorkingHourConfiguration : IEntityTypeConfiguration<WorkingHourEnti
 {
     public void Configure(EntityTypeBuilder<WorkingHourEntity> builder)
     {
-        builder.ToTable("WorkingHours");
         builder.HasKey(wh => wh.Id);
 
         builder.Property(wh => wh.Id).HasMaxLength(24);

@@ -1,15 +1,19 @@
-﻿using ARM.Core.Enums;
+﻿using System;
 
 namespace ARM.Core.Dtos.Update;
 
 public class UpdateRepairOrderDto
 {
+    public string CustomerId { get; set; } = string.Empty;
+    public string CarId { get; set; } = string.Empty;
+    public string AutoServiceId { get; set; } = string.Empty;
+    public string ServiceTypeId { get; set; } = string.Empty;
     public DateTime ScheduledDate { get; set; }
     public TimeSpan EstimatedDuration { get; set; }
-    public string DiagnosisResults { get; set; } = string.Empty;
+    public string? DiagnosisResults { get; set; }
     public decimal ActualCost { get; set; }
+    public string? CancellationReason { get; set; }
+    public string ServiceStatus { get; set; } = string.Empty;
     public decimal EstimatedCost { get; set; }
-    public string CancellationReason { get; set; } = string.Empty;
-    public ServiceStatus ServiceStatus { get; set; }
-    public string CustomerComments { get; set; } = string.Empty;
+    public string? CustomerComments { get; set; }
 }

@@ -16,7 +16,8 @@ public class BrandRepository : IBrandRepository
     
     public async Task<BrandEntity> GetByIdAsync(string id)
         => await _context.Brands
-               .Include(ar => ar.Services)
+               .Include(ar => ar.Venues)
+               .ThenInclude(v => v.Services)
                .Include(ar => ar.Reviews)
                .Include(ar => ar.WorkingHours)
                .AsNoTracking()
@@ -25,14 +26,15 @@ public class BrandRepository : IBrandRepository
 
     public async Task<IEnumerable<BrandEntity>> GetAllAsync()
     {
-        var Brands = await _context.Brands
-            .Include(ar => ar.Services)
+        var brands = await _context.Brands
+            .Include(ar => ar.Venues)
+            .ThenInclude(v => v.Services)
             .Include(ar => ar.Reviews)
             .Include(ar => ar.WorkingHours)
             .AsNoTracking()
             .ToListAsync();
 
-        return Brands;
+        return brands;
     }
 
     public async Task AddAsync(BrandEntity entity)
@@ -64,7 +66,8 @@ public class BrandRepository : IBrandRepository
     public async Task DeleteAsync(string id)
     {
         var result = await _context.Brands
-            .Include(ar => ar.Services)
+            .Include(ar => ar.Venues)
+            .ThenInclude(v => v.Services)
             .Include(ar => ar.Reviews)
             .Include(ar => ar.WorkingHours)
             .Where(ar => ar.Id == id)
@@ -79,7 +82,8 @@ public class BrandRepository : IBrandRepository
 
     public async Task<ICollection<BrandEntity>> FindAsync(Expression<Func<BrandEntity, bool>> predicate)
         => await _context.Brands
-            .Include(ar => ar.Services)
+            .Include(ar => ar.Venues)
+            .ThenInclude(v => v.Services)
             .Include(ar => ar.Reviews)
             .Include(ar => ar.WorkingHours)
             .AsNoTracking()

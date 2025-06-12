@@ -10,7 +10,6 @@ public class BrandConfiguration : IEntityTypeConfiguration<BrandEntity>
 {
     public void Configure(EntityTypeBuilder<BrandEntity> builder)
     {
-        builder.ToTable("AutoServices");
         builder.HasKey(a => a.Id);
         
         builder.Property(a => a.Id).HasMaxLength(24);
@@ -35,7 +34,7 @@ public class BrandConfiguration : IEntityTypeConfiguration<BrandEntity>
 
         builder.HasMany(ar => ar.Services)
             .WithOne(s => s.Brand)
-            .HasForeignKey(s => s.AutoServiceId)
+            .HasForeignKey(s => s.BrandId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(ar => ar.Reviews)
@@ -46,7 +45,11 @@ public class BrandConfiguration : IEntityTypeConfiguration<BrandEntity>
         builder.HasMany(ar => ar.WorkingHours)
             .WithOne(wh => wh.Brand)
             .HasForeignKey(wh => wh.AutoServiceId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
         
+        builder.HasMany(b => b.Venues)
+            .WithOne(v => v.Brand)
+            .HasForeignKey(v => v.BrandId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

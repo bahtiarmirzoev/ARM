@@ -22,7 +22,7 @@ public class ExecuteController : ControllerBase
     {
         var assembly = Assembly.Load("ARM.RequestPipeline");
         var results = new List<object>();
-        var successCount = 0;
+        var processedCount = 0;
         var failureCount = 0;
 
         foreach (var item in request.Requests)
@@ -32,7 +32,7 @@ public class ExecuteController : ControllerBase
             {
                 results.Add(new
                 {
-                    success = false,
+                    processed = false,
                     Error = $"anf"
                 });
                 failureCount++;
@@ -46,7 +46,7 @@ public class ExecuteController : ControllerBase
             {
                 results.Add(new
                 {
-                    success = false,
+                    processed = false,
                     Error = "Invalid parameters format"
                 });
                 failureCount++;
@@ -58,16 +58,16 @@ public class ExecuteController : ControllerBase
                 var result = await _mediator.Send(command);
                 results.Add(new
                 {
-                    success = true,
+                    processed = true,
                     Result = result
                 });
-                successCount++;
+                processedCount++;
             }
             catch (AppException ex)
             {
                 results.Add(new
                 {
-                    success = false,
+                    processed = false,
                     Error = ex.Message,
                     Code = ex.ExceptionType
                 });
@@ -77,14 +77,14 @@ public class ExecuteController : ControllerBase
             {
                 results.Add(new
                 {
-                    success = false,
+                    processed = false,
                     Error = ex.Message
                 });
                 failureCount++;
             }
         }
 
-        if (successCount == 0)
+        if (processedCount == 0)
             return BadRequest(results);
 
         if (failureCount > 0)

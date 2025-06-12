@@ -58,9 +58,9 @@ public class CarService : ICarService
         {
             var carEntity = _mapper.Map<CarEntity>(dto);
             carEntity.OwnerId = userId;
-            
+
             await _carRepository.AddAsync(carEntity);
-            
+
             return _mapper.Map<CarDto>(carEntity);
         });
     }
@@ -72,14 +72,14 @@ public class CarService : ICarService
                 c => c.Id == id && c.OwnerId == userId))
             .FirstOrDefault()
             .EnsureFound("CarNotFound");
-        
+
         await _updateCarValidator.ValidateAndThrowAsync(dto);
-        
+
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             _mapper.Map(dto, existingCar);
             await _carRepository.UpdateAsync(new[] { existingCar });
-            
+
             return _mapper.Map<CarDto>(existingCar);
         });
     }
@@ -111,4 +111,4 @@ public class CarService : ICarService
         var cars = await _carRepository.FindAsync(u => u.OwnerId == userId);
         return _mapper.Map<IEnumerable<CarDto>>(cars);
     }
-} 
+}

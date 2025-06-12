@@ -88,7 +88,7 @@ namespace ARM.Infrastructure.Migrations
                     b.ToTable("UserActiveSessions");
                 });
 
-            modelBuilder.Entity("ARM.Core.Entities.Main.AutoServiceEntity", b =>
+            modelBuilder.Entity("ARM.Core.Entities.Main.BrandEntity", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(24)
@@ -177,7 +177,7 @@ namespace ARM.Infrastructure.Migrations
 
                     b.HasIndex("Latitude", "Longitude");
 
-                    b.ToTable("AutoServices", (string)null);
+                    b.ToTable("Brands");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.CarEntity", b =>
@@ -249,7 +249,74 @@ namespace ARM.Infrastructure.Migrations
                     b.HasIndex("VIN")
                         .IsUnique();
 
-                    b.ToTable("Cars", (string)null);
+                    b.ToTable("Cars");
+                });
+
+            modelBuilder.Entity("ARM.Core.Entities.Main.CustomerEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("EmailVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ProfilePicture")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("PhoneNumber")
+                        .IsUnique();
+
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.PermissionEntity", b =>
@@ -278,7 +345,7 @@ namespace ARM.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Permissions", (string)null);
+                    b.ToTable("Permissions");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.RepairLogEntity", b =>
@@ -354,7 +421,7 @@ namespace ARM.Infrastructure.Migrations
 
                     b.HasIndex("CarId", "RepairDate");
 
-                    b.ToTable("RepairLogs", (string)null);
+                    b.ToTable("RepairLogs");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.RepairOrderEntity", b =>
@@ -390,6 +457,11 @@ namespace ARM.Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
                     b.Property<string>("DiagnosisResults")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -420,11 +492,6 @@ namespace ARM.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AutoServiceId");
@@ -437,9 +504,9 @@ namespace ARM.Infrastructure.Migrations
 
                     b.HasIndex("ServiceStatus");
 
-                    b.HasIndex("UserId", "ServiceStatus");
+                    b.HasIndex("CustomerId", "ServiceStatus");
 
-                    b.ToTable("RepairOrders", (string)null);
+                    b.ToTable("RepairOrders");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.ReviewEntity", b =>
@@ -461,24 +528,24 @@ namespace ARM.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
                     b.Property<int>("Rating")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AutoServiceId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("CustomerId");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.RoleEntity", b =>
@@ -511,7 +578,7 @@ namespace ARM.Infrastructure.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.ServiceEntity", b =>
@@ -520,7 +587,7 @@ namespace ARM.Infrastructure.Migrations
                         .HasMaxLength(24)
                         .HasColumnType("character varying(24)");
 
-                    b.Property<string>("AutoServiceId")
+                    b.Property<string>("BrandId")
                         .IsRequired()
                         .HasMaxLength(24)
                         .HasColumnType("character varying(24)");
@@ -561,10 +628,10 @@ namespace ARM.Infrastructure.Migrations
 
                     b.HasIndex("Rating");
 
-                    b.HasIndex("AutoServiceId", "Name")
+                    b.HasIndex("BrandId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Services", (string)null);
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.ServiceRequestEntity", b =>
@@ -662,7 +729,7 @@ namespace ARM.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("MakeOrderRequests", (string)null);
+                    b.ToTable("MakeOrderRequests");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.UserEntity", b =>
@@ -671,12 +738,8 @@ namespace ARM.Infrastructure.Migrations
                         .HasMaxLength(24)
                         .HasColumnType("character varying(24)");
 
-                    b.Property<string>("Address")
+                    b.Property<string>("BrandId")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<string>("AutoServiceId")
                         .HasMaxLength(24)
                         .HasColumnType("character varying(24)");
 
@@ -716,8 +779,8 @@ namespace ARM.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<DateTime>("RegisteredAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("RoleEntityId")
+                        .HasColumnType("character varying(24)");
 
                     b.Property<string>("RoleId")
                         .IsRequired()
@@ -734,7 +797,7 @@ namespace ARM.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AutoServiceId");
+                    b.HasIndex("BrandId");
 
                     b.HasIndex("Email")
                         .IsUnique();
@@ -744,11 +807,72 @@ namespace ARM.Infrastructure.Migrations
                     b.HasIndex("PhoneNumber")
                         .IsUnique();
 
+                    b.HasIndex("RoleEntityId");
+
                     b.HasIndex("RoleId");
 
                     b.HasIndex("Name", "Surname");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ARM.Core.Entities.Main.VenueEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("BrandId")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsOpen")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<double>("Latitude")
+                        .HasPrecision(10, 6)
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasPrecision(10, 6)
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
+
+                    b.HasIndex("Latitude", "Longitude");
+
+                    b.ToTable("Venues");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.WorkingHourEntity", b =>
@@ -779,22 +903,7 @@ namespace ARM.Infrastructure.Migrations
                     b.HasIndex("AutoServiceId", "Day")
                         .IsUnique();
 
-                    b.ToTable("WorkingHours", (string)null);
-                });
-
-            modelBuilder.Entity("AutoServiceEntityServiceEntity", b =>
-                {
-                    b.Property<string>("AutoRepairsId")
-                        .HasColumnType("character varying(24)");
-
-                    b.Property<string>("ServicesId")
-                        .HasColumnType("character varying(24)");
-
-                    b.HasKey("AutoRepairsId", "ServicesId");
-
-                    b.HasIndex("ServicesId");
-
-                    b.ToTable("AutoServiceEntityServiceEntity");
+                    b.ToTable("WorkingHours");
                 });
 
             modelBuilder.Entity("PermissionEntityRoleEntity", b =>
@@ -827,20 +936,35 @@ namespace ARM.Infrastructure.Migrations
                     b.ToTable("RepairLogEntityServiceEntity");
                 });
 
+            modelBuilder.Entity("ServiceEntityVenueEntity", b =>
+                {
+                    b.Property<string>("ServicesId")
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("VenuesId")
+                        .HasColumnType("character varying(24)");
+
+                    b.HasKey("ServicesId", "VenuesId");
+
+                    b.HasIndex("VenuesId");
+
+                    b.ToTable("VenueServices", (string)null);
+                });
+
             modelBuilder.Entity("ARM.Core.Entities.Main.CarEntity", b =>
                 {
-                    b.HasOne("ARM.Core.Entities.Main.UserEntity", "Owner")
+                    b.HasOne("ARM.Core.Entities.Main.CustomerEntity", "Customer")
                         .WithMany("Cars")
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Owner");
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.RepairLogEntity", b =>
                 {
-                    b.HasOne("ARM.Core.Entities.Main.AutoServiceEntity", "AutoService")
+                    b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
                         .WithMany()
                         .HasForeignKey("AutoServiceId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -852,14 +976,14 @@ namespace ARM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AutoService");
+                    b.Navigation("Brand");
 
                     b.Navigation("Car");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.RepairOrderEntity", b =>
                 {
-                    b.HasOne("ARM.Core.Entities.Main.AutoServiceEntity", "AutoService")
+                    b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
                         .WithMany()
                         .HasForeignKey("AutoServiceId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -871,52 +995,52 @@ namespace ARM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ARM.Core.Entities.Main.UserEntity", "User")
+                    b.HasOne("ARM.Core.Entities.Main.CustomerEntity", "Customer")
                         .WithMany("RepairOrders")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("AutoService");
+                    b.Navigation("Brand");
 
                     b.Navigation("Car");
 
-                    b.Navigation("User");
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.ReviewEntity", b =>
                 {
-                    b.HasOne("ARM.Core.Entities.Main.AutoServiceEntity", "AutoService")
+                    b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
                         .WithMany("Reviews")
                         .HasForeignKey("AutoServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ARM.Core.Entities.Main.UserEntity", "User")
+                    b.HasOne("ARM.Core.Entities.Main.CustomerEntity", "Customer")
                         .WithMany("Reviews")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AutoService");
+                    b.Navigation("Brand");
 
-                    b.Navigation("User");
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.ServiceEntity", b =>
                 {
-                    b.HasOne("ARM.Core.Entities.Main.AutoServiceEntity", "AutoService")
-                        .WithMany()
-                        .HasForeignKey("AutoServiceId")
+                    b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
+                        .WithMany("Services")
+                        .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AutoService");
+                    b.Navigation("Brand");
                 });
 
             modelBuilder.Entity("ARM.Core.Entities.Main.ServiceRequestEntity", b =>
                 {
-                    b.HasOne("ARM.Core.Entities.Main.AutoServiceEntity", "AutoService")
+                    b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
                         .WithMany()
                         .HasForeignKey("AutoRepairId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -934,7 +1058,7 @@ namespace ARM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("AutoService");
+                    b.Navigation("Brand");
 
                     b.Navigation("Service");
 
@@ -943,14 +1067,19 @@ namespace ARM.Infrastructure.Migrations
 
             modelBuilder.Entity("ARM.Core.Entities.Main.UserEntity", b =>
                 {
-                    b.HasOne("ARM.Core.Entities.Main.AutoServiceEntity", "AutoService")
+                    b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
                         .WithMany()
-                        .HasForeignKey("AutoServiceId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ARM.Core.Entities.Main.PermissionEntity", null)
                         .WithMany("Users")
                         .HasForeignKey("PermissionEntityId");
+
+                    b.HasOne("ARM.Core.Entities.Main.RoleEntity", null)
+                        .WithMany("Users")
+                        .HasForeignKey("RoleEntityId");
 
                     b.HasOne("ARM.Core.Entities.Main.RoleEntity", "Role")
                         .WithMany()
@@ -958,35 +1087,31 @@ namespace ARM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("AutoService");
+                    b.Navigation("Brand");
 
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("ARM.Core.Entities.Main.VenueEntity", b =>
+                {
+                    b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
+                        .WithMany("Venues")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Brand");
+                });
+
             modelBuilder.Entity("ARM.Core.Entities.Main.WorkingHourEntity", b =>
                 {
-                    b.HasOne("ARM.Core.Entities.Main.AutoServiceEntity", "AutoService")
+                    b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
                         .WithMany("WorkingHours")
                         .HasForeignKey("AutoServiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AutoService");
-                });
-
-            modelBuilder.Entity("AutoServiceEntityServiceEntity", b =>
-                {
-                    b.HasOne("ARM.Core.Entities.Main.AutoServiceEntity", null)
-                        .WithMany()
-                        .HasForeignKey("AutoRepairsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ARM.Core.Entities.Main.ServiceEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ServicesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Brand");
                 });
 
             modelBuilder.Entity("PermissionEntityRoleEntity", b =>
@@ -1019,9 +1144,28 @@ namespace ARM.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ARM.Core.Entities.Main.AutoServiceEntity", b =>
+            modelBuilder.Entity("ServiceEntityVenueEntity", b =>
+                {
+                    b.HasOne("ARM.Core.Entities.Main.ServiceEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ServicesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ARM.Core.Entities.Main.VenueEntity", null)
+                        .WithMany()
+                        .HasForeignKey("VenuesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ARM.Core.Entities.Main.BrandEntity", b =>
                 {
                     b.Navigation("Reviews");
+
+                    b.Navigation("Services");
+
+                    b.Navigation("Venues");
 
                     b.Navigation("WorkingHours");
                 });
@@ -1031,7 +1175,21 @@ namespace ARM.Infrastructure.Migrations
                     b.Navigation("RepairHistory");
                 });
 
+            modelBuilder.Entity("ARM.Core.Entities.Main.CustomerEntity", b =>
+                {
+                    b.Navigation("Cars");
+
+                    b.Navigation("RepairOrders");
+
+                    b.Navigation("Reviews");
+                });
+
             modelBuilder.Entity("ARM.Core.Entities.Main.PermissionEntity", b =>
+                {
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("ARM.Core.Entities.Main.RoleEntity", b =>
                 {
                     b.Navigation("Users");
                 });
@@ -1039,15 +1197,6 @@ namespace ARM.Infrastructure.Migrations
             modelBuilder.Entity("ARM.Core.Entities.Main.ServiceEntity", b =>
                 {
                     b.Navigation("ServiceRequests");
-                });
-
-            modelBuilder.Entity("ARM.Core.Entities.Main.UserEntity", b =>
-                {
-                    b.Navigation("Cars");
-
-                    b.Navigation("RepairOrders");
-
-                    b.Navigation("Reviews");
                 });
 #pragma warning restore 612, 618
         }

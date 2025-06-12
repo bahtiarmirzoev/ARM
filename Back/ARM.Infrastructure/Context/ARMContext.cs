@@ -9,6 +9,8 @@ public class ARMContext : DbContext
 {
     public ARMContext(DbContextOptions<ARMContext> options) : base(options){}
     public DbSet<BrandEntity> Brands { get; set; }
+    public DbSet<VenueEntity> Venues { get; set; }
+    public DbSet<CustomerEntity> Customers { get; set; }
     public DbSet<WorkingHourEntity> WorkingHours { get; set; }
     public DbSet<CarEntity> Cars { get; set; }
     public DbSet<ServiceRequestEntity> MakeOrderRequests { get; set; }

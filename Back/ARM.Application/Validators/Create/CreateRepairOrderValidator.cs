@@ -25,7 +25,7 @@ public class CreateRepairOrderValidator : AbstractValidator<CreateRepairOrderDto
             .GreaterThan(TimeSpan.Zero)
             .WithMessage("EstimatedDurationInvalid");
 
-        RuleFor(r => r.ActualCost)
+        RuleFor(r => r.EstimatedCost)
             .GreaterThanOrEqualTo(0)
             .WithMessage("ActualCostInvalid");
 

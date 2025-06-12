@@ -10,7 +10,6 @@ public class RoleConfiguration : IEntityTypeConfiguration<RoleEntity>
 {
     public void Configure(EntityTypeBuilder<RoleEntity> builder)
     {
-        builder.ToTable("Roles");
         builder.HasKey(r => r.Id);
         
         builder.Property(a => a.Id).HasMaxLength(24);

@@ -14,7 +14,7 @@
     <ItemGroup>
       <Folder Include="Commands\" />
       <Folder Include="Handlers\" />
-      <Folder Include="Handlers\AutoService\" />
+      <Folder Include="Handlers\Brand\" />
       <Folder Include="Queries\" />
     </ItemGroup>
 

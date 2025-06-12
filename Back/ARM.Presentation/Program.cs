@@ -39,7 +39,7 @@ builder.Services.AddAuthentication(options =>
         {
             if (context.Request.Cookies.ContainsKey("atk"))
                 context.Token = context.Request.Cookies["atk"];
-           
+
             return Task.CompletedTask;
         }
     };
@@ -96,6 +96,7 @@ builder.Services.AddDataProtection();
 builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 
 builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ICarService, CarService>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddScoped<IRepairOrderService, RepairOrderService>();
@@ -104,6 +105,7 @@ builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IWorkingHourService, WorkingHourService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IVenueService, VenueService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -118,6 +120,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IUserActiveSessionsRepository, UserActiveSessionsRepository>();
 builder.Services.AddScoped<IBlackListedRepository, BlackListedRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICarRepository, CarRepository>();
 builder.Services.AddScoped<IPermissionRepository, PermissionRepository>();
 builder.Services.AddScoped<IRepairLogRepository, RepairLogRepository>();
@@ -126,8 +129,11 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
+builder.Services.AddScoped<IVenueRepository, VenueRepository>();
 builder.Services.AddScoped<IWorkingHourRepository, WorkingHourRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 builder.Services.AddCors(options =>
 {
@@ -144,7 +150,7 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetSection("Redis:Configuration").Value;
-    options.InstanceName = "ARMAPP"; 
+    options.InstanceName = "ARMAPP";
 });
 
 var redisConnectionString = builder.Configuration["Redis:Configuration"];

@@ -12,6 +12,7 @@ public class CreateBrandDto
     public string Email { get; set; } = string.Empty;
     public ICollection<CreateWorkingHourDto> WorkingHours { get; set; } = [];
     public ICollection<CreateServiceDto> Services { get; set; } = [];
+    public ICollection<CreateVenueDto> Venues { get; set; } = [];
     public int MaxCarsPerDay { get; set; }
     public bool HasParking { get; set; }
     public bool HasWaitingRoom { get; set; }
