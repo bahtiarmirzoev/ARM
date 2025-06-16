@@ -739,7 +739,6 @@ namespace ARM.Infrastructure.Migrations
                         .HasColumnType("character varying(24)");
 
                     b.Property<string>("BrandId")
-                        .IsRequired()
                         .HasMaxLength(24)
                         .HasColumnType("character varying(24)");
 
@@ -1070,8 +1069,7 @@ namespace ARM.Infrastructure.Migrations
                     b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
                         .WithMany()
                         .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("ARM.Core.Entities.Main.PermissionEntity", null)
                         .WithMany("Users")
@@ -1097,7 +1095,7 @@ namespace ARM.Infrastructure.Migrations
                     b.HasOne("ARM.Core.Entities.Main.BrandEntity", "Brand")
                         .WithMany("Venues")
                         .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Brand");

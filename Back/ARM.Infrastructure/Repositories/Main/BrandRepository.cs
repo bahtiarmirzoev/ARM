@@ -56,6 +56,7 @@ public class BrandRepository : IBrandRepository
                     .SetProperty(ar => ar.HasParking, brand.HasParking)
                     .SetProperty(ar => ar.HasWaitingRoom, brand.HasWaitingRoom)
                     .SetProperty(ar => ar.Rating, brand.Rating)
+                    .SetProperty(ar => ar.TotalReviews, brand.TotalReviews)
                     .SetProperty(ar => ar.UpdatedAt, DateTime.UtcNow));
 
             if (result == 0) 

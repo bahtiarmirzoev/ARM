@@ -32,7 +32,7 @@ public class RepairOrderRepository : IRepairOrderRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return orders.Any() ? orders : throw new AppException(ExceptionType.NotFound, "NoRepairOrdersFound");
+        return orders;
     }
 
     public async Task AddAsync(RepairOrderEntity entity)

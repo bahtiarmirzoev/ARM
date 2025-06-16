@@ -43,7 +43,6 @@ public static class ConfirmEmailTemplate
             display: inline-block;
             padding: 14px 32px;
             background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
-            color: #ffffff;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 600;

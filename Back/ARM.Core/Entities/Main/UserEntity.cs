@@ -16,7 +16,7 @@ public class UserEntity
     public bool EmailVerified { get; set; }
     public string RoleId { get; set; } = string.Empty;
     public RoleEntity Role { get; set; } = null!;
-    public string BrandId { get; set; } = string.Empty;
+    public string? BrandId { get; set; } = string.Empty;
     public BrandEntity Brand { get; set; } = null!;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }

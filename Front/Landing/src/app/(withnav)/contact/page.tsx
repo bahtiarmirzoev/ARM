@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/app/presentation/components/ui/button";
+import { Card } from "@/app/presentation/components/ui/card";
+import { Input } from "@/app/presentation/components/ui/input";
+import { Textarea } from "@/app/presentation/components/ui/textarea";
 import {
   Phone,
   Mail,
@@ -12,11 +12,11 @@ import {
   Send,
   MessageSquare,
   Headphones,
-} from "lucide-react"
-import { useIntl } from "react-intl"
+} from "lucide-react";
+import { useIntl } from "react-intl";
 
 export default function ContactPage() {
-  const intl = useIntl()
+  const intl = useIntl();
 
   const contactInfo = [
     {
@@ -43,7 +43,7 @@ export default function ContactPage() {
       value: intl.formatMessage({ id: "contacts.workHours" }),
       description: intl.formatMessage({ id: "contact.hours.description" }),
     },
-  ]
+  ];
 
   const offices = [
     {
@@ -64,7 +64,7 @@ export default function ContactPage() {
       phone: "+994 18 555 00 33",
       email: "sumgait@arm-saas.az",
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pt-32">
@@ -90,7 +90,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                    <p className="font-medium text-blue-600 mb-1">{item.value}</p>
+                    <p className="font-medium text-blue-600 mb-1">
+                      {item.value}
+                    </p>
                     <p className="text-muted-foreground">{item.description}</p>
                   </div>
                 </div>
@@ -112,26 +114,41 @@ export default function ContactPage() {
                   <label className="block text-sm font-medium mb-2">
                     {intl.formatMessage({ id: "contact.form.name" })}
                   </label>
-                  <Input placeholder={intl.formatMessage({ id: "contact.form.name.placeholder" })} />
+                  <Input
+                    placeholder={intl.formatMessage({
+                      id: "contact.form.name.placeholder",
+                    })}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     {intl.formatMessage({ id: "contact.form.email" })}
                   </label>
-                  <Input placeholder={intl.formatMessage({ id: "contact.form.email.placeholder" })} type="email" />
+                  <Input
+                    placeholder={intl.formatMessage({
+                      id: "contact.form.email.placeholder",
+                    })}
+                    type="email"
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-2">
                     {intl.formatMessage({ id: "contact.form.subject" })}
                   </label>
-                  <Input placeholder={intl.formatMessage({ id: "contact.form.subject.placeholder" })} />
+                  <Input
+                    placeholder={intl.formatMessage({
+                      id: "contact.form.subject.placeholder",
+                    })}
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium mb-2">
                     {intl.formatMessage({ id: "contact.form.message" })}
                   </label>
                   <Textarea
-                    placeholder={intl.formatMessage({ id: "contact.form.message.placeholder" })}
+                    placeholder={intl.formatMessage({
+                      id: "contact.form.message.placeholder",
+                    })}
                     rows={6}
                   />
                 </div>
@@ -178,5 +195,5 @@ export default function ContactPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

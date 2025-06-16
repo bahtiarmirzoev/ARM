@@ -36,7 +36,7 @@ public class CustomerRepository : ICustomerRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return customers.Any() ? customers : throw new AppException(ExceptionType.NotFound, "NoCustomersFound");
+        return customers;
     }
 
     public async Task AddAsync(CustomerEntity entity)

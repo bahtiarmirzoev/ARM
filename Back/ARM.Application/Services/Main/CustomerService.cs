@@ -15,6 +15,7 @@ using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using ARM.Core.Common;
+using static BCrypt.Net.BCrypt;
 
 namespace ARM.Application.Services.Main;
 
@@ -54,7 +55,6 @@ public class CustomerService : ICustomerService
 
     public async Task<CustomerDto> CreateAsync(CreateCustomerDto dto)
     {
-        var userId = GetUserId();
         await _createValidator.ValidateAndThrowAsync(dto);
 
         if (await _customerRepository.AnyAsync(c => c.Email == dto.Email))
@@ -67,6 +67,7 @@ public class CustomerService : ICustomerService
         {
             var customerEntity = _mapper.Map<CustomerEntity>(dto);
             customerEntity.EmailVerified = false;
+            customerEntity.Password = HashPassword(dto.Password);
 
             await _customerRepository.AddAsync(customerEntity);
 
@@ -99,7 +100,7 @@ public class CustomerService : ICustomerService
         });
     }
 
-    public async Task DeleteAsync(string id)
+    public async Task<bool> DeleteAsync(string id)
     {
         var userId = GetUserId();
         var customer = (await _customerRepository.FindAsync(
@@ -109,6 +110,8 @@ public class CustomerService : ICustomerService
 
         await _customerRepository.DeleteAsync(customer.Id);
         await _unitOfWork.SaveChangesAsync();
+
+        return true;
     }
 
     public async Task<CustomerDto> GetByIdAsync(string id)
@@ -122,5 +125,25 @@ public class CustomerService : ICustomerService
         var userId = GetUserId();
         var customers = await _customerRepository.FindAsync(c => c.Id == userId);
         return _mapper.Map<IEnumerable<CustomerDto>>(customers);
+    }
+
+    public async Task<CustomerDto> GetCustomerByEmailAsync(string email)
+    {
+        var customer = (await _customerRepository.FindAsync(
+            c => c.Email == email))
+            .FirstOrDefault();
+        
+        return _mapper.Map<CustomerDto>(customer);
+    }
+
+    public async Task<CustomerCredentialsDto> GetCustomerCredentialsByIdAsync(string id)
+    {
+        var customer = await _customerRepository.GetByIdAsync(id);
+
+        return new CustomerCredentialsDto
+        {
+            Id = customer.Id,
+            Password = customer.Password,
+        };
     }
 }

@@ -10,4 +10,7 @@ public interface IOtpService
     Task SavePendingUserAsync(string sessionId, CreateUserDto userDto);
     Task<CreateUserDto?> GetPendingUserAsync(string sessionId);
     Task ClearOtpAndPendingUserAsync(string sessionId);
+    Task SavePendingCustomerAsync(string sessionId, CreateCustomerDto customerDto);
+    Task<CreateCustomerDto?> GetPendingCustomerAsync(string sessionId);
+    Task ClearOtpAndPendingCustomerAsync(string sessionId);
 }

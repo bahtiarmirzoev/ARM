@@ -10,7 +10,9 @@ public interface ICustomerService
 {
     Task<CustomerDto> CreateAsync(CreateCustomerDto dto);
     Task<CustomerDto> UpdateAsync(string id, UpdateCustomerDto dto);
-    Task DeleteAsync(string id);
+    Task<bool> DeleteAsync(string id);
     Task<CustomerDto> GetByIdAsync(string id);
     Task<IEnumerable<CustomerDto>> GetAllAsync();
+    Task<CustomerDto> GetCustomerByEmailAsync(string email);
+    Task<CustomerCredentialsDto> GetCustomerCredentialsByIdAsync(string id);
 }

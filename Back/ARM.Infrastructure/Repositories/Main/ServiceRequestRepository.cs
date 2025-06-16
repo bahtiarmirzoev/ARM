@@ -28,7 +28,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return orders.Any() ? orders : throw new AppException(ExceptionType.NotFound, "NoMakeOrderRequestsFound");
+        return orders;
     }
 
     public async Task AddAsync(ServiceRequestEntity entity)

@@ -28,7 +28,7 @@ public class UserRepository : IUserRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return users.Any() ? users : throw new AppException(ExceptionType.NotFound, "NoUsersFound");
+        return users;
     }
 
     public async Task AddAsync(UserEntity entity)

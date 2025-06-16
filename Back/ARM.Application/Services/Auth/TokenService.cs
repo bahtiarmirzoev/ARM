@@ -26,30 +26,45 @@ public class TokenService : ITokenService
     {
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id),
+            new("userId", user.Id),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Role, user.Role.Name),
         };
-        
-        switch (user.Role.Name.ToLower())
+
+        switch (user.Role.Name)
         {
-            case "admin":
-            case "manager":
-                if (user.BrandId != null)
+            case "Admin":
+            case "Manager":
+                if (!string.IsNullOrWhiteSpace(user.BrandId))
                 {
                     claims.Add(new Claim("autoServiceId", user.BrandId));
-                    claims.Add(new Claim("autoServiceName", user.BrandName ?? string.Empty));
-                    claims.Add(new Claim("panel", user.Role.Name.ToLower() == "admin" ? "admin" : "manager"));
+                    claims.Add(new Claim("panel", user.Role.Name));
+
                 }
                 break;
-            case "client":
-                claims.Add(new Claim("panel", "client"));
-                break;
-            case "superadmin":
+            case "SuperAdmin":
                 claims.Add(new Claim("panel", "superadmin"));
                 break;
         }
 
+        return GenerateToken(claims);
+    }
+
+    public string GenerateAccessToken(CustomerDto customer)
+    {
+        var claims = new List<Claim>
+        {
+            new("customerId", customer.Id),
+            new(ClaimTypes.Email, customer.Email),
+            new(ClaimTypes.Role, "customer"),
+            new("panel", "customer"),
+        };
+
+        return GenerateToken(claims);
+    }
+
+    private string GenerateToken(IEnumerable<Claim> claims)
+    {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]))
             ?? throw new AppException(ExceptionType.NotFound, "SecretKeyNotFound");
 

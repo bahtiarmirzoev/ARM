@@ -5,9 +5,9 @@ using MediatR;
 
 namespace ARM.RequestPipeline.Handlers.User.Queries;
  
-public class GetCurrentUserHandler(IUserService userService) : IRequestHandler<GetCurrentUserQuery, PublicUserDto>
+public class GetCurrentUserHandler(IUserService userService) : IRequestHandler<GetCurrentUserQuery, PublicCustomerDto>
 {
-    public async Task<PublicUserDto> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
+    public async Task<PublicCustomerDto> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
     {
         return await userService.GetCurrentUserAsync();
     }

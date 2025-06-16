@@ -9,6 +9,6 @@ public class ConfirmOtpCommandHandler(IAuthService authService) : IRequestHandle
 {
     public async Task<UserDto> Handle(ConfirmOtpCommand request, CancellationToken cancellationToken)
     {
-        return await authService.ConfirmOtpAsync(request.Si, request.Otp);
+        return await authService.ConfirmOtpAsync(request.S, request.O);
     }
 }

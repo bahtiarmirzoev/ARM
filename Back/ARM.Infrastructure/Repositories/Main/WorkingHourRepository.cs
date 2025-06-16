@@ -28,7 +28,7 @@ public class WorkingHourRepository : IWorkingHourRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return workingHours.Any() ? workingHours : throw new AppException(ExceptionType.NotFound, "NoWorkingHoursFound");
+        return workingHours;
     }
 
     public async Task AddAsync(WorkingHourEntity entity)

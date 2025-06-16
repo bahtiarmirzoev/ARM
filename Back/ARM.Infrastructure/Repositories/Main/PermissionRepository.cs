@@ -26,9 +26,7 @@ public class PermissionRepository : IPermissionRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return permissions.Any()
-            ? permissions
-            : throw new AppException(ExceptionType.NotFound, "NoPermissionsFound");
+        return permissions;
     }
 
     public async Task AddAsync(PermissionEntity entity)

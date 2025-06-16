@@ -1,8 +1,13 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/app/presentation/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/app/presentation/components/ui/card";
+import { Badge } from "@/app/presentation/components/ui/badge";
 import {
   Star,
   MapPin,
@@ -12,28 +17,28 @@ import {
   Users,
   Shield,
   ArrowRight,
-} from "lucide-react"
-import { useIntl } from "react-intl"
+} from "lucide-react";
+import { useIntl } from "react-intl";
 
 interface Partner {
-  id: number
-  name: string
-  location: string
-  phone: string
-  email: string
-  rating: number
-  reviews: number
-  clients: string
-  services: string[]
-  workingHours: string
-  experience: string
-  specialization: string
-  certified: boolean
-  premium: boolean
+  id: number;
+  name: string;
+  location: string;
+  phone: string;
+  email: string;
+  rating: number;
+  reviews: number;
+  clients: string;
+  services: string[];
+  workingHours: string;
+  experience: string;
+  specialization: string;
+  certified: boolean;
+  premium: boolean;
 }
 
 export default function PartnersPage() {
-  const intl = useIntl()
+  const intl = useIntl();
 
   const partners: Partner[] = [
     {
@@ -90,7 +95,9 @@ export default function PartnersPage() {
       ],
       workingHours: "B.e-Ş: 09:00-19:00",
       experience: "8",
-      specialization: intl.formatMessage({ id: "partners.service.electronics" }),
+      specialization: intl.formatMessage({
+        id: "partners.service.electronics",
+      }),
       certified: true,
       premium: true,
     },
@@ -114,7 +121,7 @@ export default function PartnersPage() {
       certified: true,
       premium: true,
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pt-32">
@@ -131,20 +138,30 @@ export default function PartnersPage() {
 
           <div className="grid md:grid-cols-2 gap-8">
             {partners.map((partner) => (
-              <Card key={partner.id} className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <Card
+                key={partner.id}
+                className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300"
+              >
                 <CardHeader>
                   <div className="flex items-center justify-between mb-4">
                     <CardTitle className="text-xl">{partner.name}</CardTitle>
                     <div className="flex items-center">
                       {partner.premium && (
                         <Badge variant="secondary" className="mr-2">
-                          {intl.formatMessage({ id: "partners.status.premium" })}
+                          {intl.formatMessage({
+                            id: "partners.status.premium",
+                          })}
                         </Badge>
                       )}
                       {partner.certified && (
-                        <Badge variant="outline" className="text-green-600 border-green-200">
+                        <Badge
+                          variant="outline"
+                          className="text-green-600 border-green-200"
+                        >
                           <Shield className="h-3 w-3 mr-1" />
-                          {intl.formatMessage({ id: "partners.status.certified" })}
+                          {intl.formatMessage({
+                            id: "partners.status.certified",
+                          })}
                         </Badge>
                       )}
                     </div>
@@ -154,7 +171,8 @@ export default function PartnersPage() {
                       <Star className="h-5 w-5 fill-current" />
                       <span className="ml-1 font-medium">{partner.rating}</span>
                       <span className="ml-1 text-muted-foreground">
-                        ({partner.reviews} {intl.formatMessage({ id: "partners.reviews" })})
+                        ({partner.reviews}{" "}
+                        {intl.formatMessage({ id: "partners.reviews" })})
                       </span>
                     </div>
                   </div>
@@ -168,13 +186,15 @@ export default function PartnersPage() {
                     <div className="flex items-center text-muted-foreground">
                       <Clock className="h-4 w-4 mr-2 shrink-0" />
                       <span>
-                        {intl.formatMessage({ id: "partners.workingHours" })}: {partner.workingHours}
+                        {intl.formatMessage({ id: "partners.workingHours" })}:{" "}
+                        {partner.workingHours}
                       </span>
                     </div>
                     <div className="flex items-center text-muted-foreground">
                       <Users className="h-4 w-4 mr-2 shrink-0" />
                       <span>
-                        {partner.clients} {intl.formatMessage({ id: "partners.clients" })}
+                        {partner.clients}{" "}
+                        {intl.formatMessage({ id: "partners.clients" })}
                       </span>
                     </div>
                     <div>
@@ -200,7 +220,10 @@ export default function PartnersPage() {
                           {intl.formatMessage({ id: "partners.email" })}
                         </Button>
                       </div>
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      <Button
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
                         {intl.formatMessage({ id: "partners.details" })}
                         <ArrowRight className="h-4 w-4 ml-1" />
                       </Button>
@@ -213,5 +236,5 @@ export default function PartnersPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

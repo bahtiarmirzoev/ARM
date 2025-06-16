@@ -22,7 +22,7 @@ public class ReviewService : IReviewService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IReviewRepository _reviewRepository;
     private readonly IBrandRepository _brandRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly ICustomerRepository _customerRepository;
     private readonly IValidator<CreateReviewDto> _createReviewValidator;
     private readonly IValidator<UpdateReviewDto> _updateReviewValidator;
     private readonly IUnitOfWork _unitOfWork;
@@ -32,7 +32,7 @@ public class ReviewService : IReviewService
         IHttpContextAccessor httpContextAccessor,
         IReviewRepository reviewRepository,
         IBrandRepository brandRepository,
-        IUserRepository userRepository,
+        ICustomerRepository customerRepository,
         IValidator<CreateReviewDto> createReviewValidator,
         IValidator<UpdateReviewDto> updateReviewValidator,
         IUnitOfWork unitOfWork)
@@ -41,41 +41,36 @@ public class ReviewService : IReviewService
         _httpContextAccessor = httpContextAccessor;
         _reviewRepository = reviewRepository;
         _brandRepository = brandRepository;
-        _userRepository = userRepository;
+        _customerRepository = customerRepository;
         _createReviewValidator = createReviewValidator;
         _updateReviewValidator = updateReviewValidator;
         _unitOfWork = unitOfWork;
     }
 
-    private string GetCustomerId()
-    {
-        var customerId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(customerId))
-            throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
-
-        return customerId;
-    }
-
     public async Task<ReviewDto> CreateAsync(CreateReviewDto dto)
     {
-        var customerId = GetCustomerId();
+        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
         await _createReviewValidator.ValidateAndThrowAsync(dto);
 
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             var reviewEntity = _mapper.Map<ReviewEntity>(dto);
             reviewEntity.CustomerId = customerId;
-            reviewEntity.CreatedAt = DateTime.UtcNow;
 
             await _reviewRepository.AddAsync(reviewEntity);
+            
+            var customer = await _customerRepository.GetByIdAsync(customerId);
+            var reviewDto = _mapper.Map<ReviewDto>(reviewEntity);
+            reviewDto.Customer = _mapper.Map<PublicCustomerDto>(customer);
 
-            return _mapper.Map<ReviewDto>(reviewEntity);
+            await UpdateAutoServiceRatingAsync(dto.AutoServiceId);
+            return reviewDto;
         });
     }
 
     public async Task<ReviewDto> UpdateAsync(string id, UpdateReviewDto dto)
     {
-        var customerId = GetCustomerId();
+        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
         var existingReview = (await _reviewRepository.FindAsync(
                 r => r.Id == id && r.CustomerId == customerId))
             .FirstOrDefault()
@@ -86,15 +81,16 @@ public class ReviewService : IReviewService
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             _mapper.Map(dto, existingReview);
-            await _reviewRepository.UpdateAsync(new[] { existingReview });
+            await _reviewRepository.UpdateAsync([existingReview]);
 
+            await UpdateAutoServiceRatingAsync(dto.AutoServiceId);
             return _mapper.Map<ReviewDto>(existingReview);
         });
     }
 
     public async Task<bool> DeleteAsync(string id)
     {
-        var customerId = GetCustomerId();
+        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
         var review = (await _reviewRepository.FindAsync(
                 r => r.Id == id && r.CustomerId == customerId))
             .FirstOrDefault()
@@ -103,19 +99,23 @@ public class ReviewService : IReviewService
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             await _reviewRepository.DeleteAsync(review.Id);
+            await UpdateAutoServiceRatingAsync(review.AutoServiceId);
             return true;
         });
     }
 
     public async Task<ReviewDto> GetByIdAsync(string id)
     {
-        var review = await _reviewRepository.GetByIdAsync(id);
+        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
+        var review = await _reviewRepository.FindAsync(
+            r => r.Id == id && r.CustomerId == customerId)
+            .EnsureFound("ReviewNotFound");
         return _mapper.Map<ReviewDto>(review);
     }
 
     public async Task<IEnumerable<ReviewDto>> GetAllAsync()
     {
-        var customerId = GetCustomerId();
+        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
         var reviews = await _reviewRepository.FindAsync(r => r.CustomerId == customerId);
         return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
     }
@@ -160,12 +160,18 @@ public class ReviewService : IReviewService
 
     private async Task UpdateAutoServiceRatingAsync(string autoServiceId)
     {
-        var averageRating = await GetAverageRatingByAutoServiceIdAsync(autoServiceId);
+        var reviews = await _reviewRepository.FindAsync
+            (r => r.AutoServiceId == autoServiceId);
+        
+        var averageRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+        var totalReviews = reviews.Count;
+        
         var autoService = await _brandRepository.GetByIdAsync(autoServiceId);
 
         autoService.Rating = (decimal)averageRating;
+        autoService.TotalReviews = totalReviews;
 
-        await _brandRepository.UpdateAsync(new[] { autoService });
+        await _brandRepository.UpdateAsync([autoService]);
         await _unitOfWork.SaveChangesAsync();
     }
 }

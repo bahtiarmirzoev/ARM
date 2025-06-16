@@ -30,7 +30,7 @@ public class RepairLogRepository : IRepairLogRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return logs.Any() ? logs : throw new AppException(ExceptionType.NotFound, "NoRepairLogsFound");
+        return logs;
     }
 
     public async Task AddAsync(RepairLogEntity entity)

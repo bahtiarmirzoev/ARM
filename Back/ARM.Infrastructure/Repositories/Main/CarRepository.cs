@@ -28,7 +28,7 @@ public class CarRepository : ICarRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return cars.Any() ? cars : throw new AppException(ExceptionType.NotFound, "NoCarsFound");
+        return cars;
     }
 
     public async Task AddAsync(CarEntity entity)

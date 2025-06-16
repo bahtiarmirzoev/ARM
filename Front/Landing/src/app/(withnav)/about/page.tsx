@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card } from "@/app/presentation/components/ui/card";
+import { Badge } from "@/app/presentation/components/ui/badge";
 import {
   Users,
   Building2,
@@ -11,11 +11,11 @@ import {
   Star,
   MapPin,
   Zap,
-} from "lucide-react"
-import { useIntl } from "react-intl"
+} from "lucide-react";
+import { useIntl } from "react-intl";
 
 export default function AboutPage() {
-  const intl = useIntl()
+  const intl = useIntl();
 
   const stats = [
     {
@@ -38,25 +38,31 @@ export default function AboutPage() {
       value: "99.9%",
       label: intl.formatMessage({ id: "about.stats.satisfaction" }),
     },
-  ]
+  ];
 
   const values = [
     {
       icon: <Star className="h-6 w-6 text-yellow-500" />,
       title: intl.formatMessage({ id: "about.values.quality.title" }),
-      description: intl.formatMessage({ id: "about.values.quality.description" }),
+      description: intl.formatMessage({
+        id: "about.values.quality.description",
+      }),
     },
     {
       icon: <Zap className="h-6 w-6 text-blue-500" />,
       title: intl.formatMessage({ id: "about.values.innovation.title" }),
-      description: intl.formatMessage({ id: "about.values.innovation.description" }),
+      description: intl.formatMessage({
+        id: "about.values.innovation.description",
+      }),
     },
     {
       icon: <CheckCircle className="h-6 w-6 text-green-500" />,
       title: intl.formatMessage({ id: "about.values.reliability.title" }),
-      description: intl.formatMessage({ id: "about.values.reliability.description" }),
+      description: intl.formatMessage({
+        id: "about.values.reliability.description",
+      }),
     },
-  ]
+  ];
 
   const offices = [
     {
@@ -74,7 +80,7 @@ export default function AboutPage() {
       address: "Sülh küç. 45",
       type: intl.formatMessage({ id: "about.office.regional" }),
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pt-32">
@@ -145,5 +151,5 @@ export default function AboutPage() {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

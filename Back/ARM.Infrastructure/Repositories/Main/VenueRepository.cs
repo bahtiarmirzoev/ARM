@@ -30,7 +30,7 @@ public class VenueRepository : IVenueRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return venues.Any() ? venues : throw new AppException(ExceptionType.NotFound, "NoVenuesFound");
+        return venues;
     }
 
     public async Task AddAsync(VenueEntity entity)

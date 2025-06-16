@@ -12,10 +12,10 @@ public class OtpService(IRedisCacheService redisCache) : IOtpService
     public async Task<string> GenerateAndSaveOtpAsync(string si)
     {
         var otpTimestampKey = $"otpTimestamp:{si}";
-        
+
         var otp = new Random().Next(000001, 999999).ToString();
         await redisCache.SetAsync($"otp:{si}", otp, _otpLifetime);
-        
+
         var nowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         await redisCache.SetAsync(otpTimestampKey, nowMs, _otpLifetime);
         return otp;
@@ -43,5 +43,17 @@ public class OtpService(IRedisCacheService redisCache) : IOtpService
     {
         await redisCache.KeyDeleteAsync($"otp:{si}");
         await redisCache.KeyDeleteAsync($"pendingUser:{si}");
+    }
+
+    public async Task SavePendingCustomerAsync(string si, CreateCustomerDto customerDto)
+        => await redisCache.SetAsync($"pendingCustomer:{si}", customerDto, TimeSpan.FromMinutes(5));
+
+    public async Task<CreateCustomerDto?> GetPendingCustomerAsync(string si)
+        => await redisCache.GetAsync<CreateCustomerDto>($"pendingCustomer:{si}");
+
+    public async Task ClearOtpAndPendingCustomerAsync(string si)
+    {
+        await redisCache.KeyDeleteAsync($"otp:{si}");
+        await redisCache.KeyDeleteAsync($"pendingCustomer:{si}");
     }
 }

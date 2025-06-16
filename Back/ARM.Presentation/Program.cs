@@ -12,6 +12,7 @@ using ARM.Infrastructure.Repositories.Main;
 using ARM.Core.Dtos.Auth;
 using ARM.Infrastructure.Context;
 using ARM.Infrastructure.Repositories.Auth;
+using ARM.Infrastructure.Seeding;
 using ARM.Infrastructure.UOW;
 using ARM.Presentation.Middlewares;
 using ARM.RequestPipeline.Commands.User;
@@ -93,6 +94,8 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDataProtection();
 
+builder.Services.AddTransient<ARMSedder>();
+
 builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 
 builder.Services.AddScoped<IBrandService, BrandService>();
@@ -108,6 +111,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IVenueService, VenueService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICustomerAuthService, CustomerAuthService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
@@ -169,6 +173,10 @@ builder.Services.AddDbContext<ARMContext>(options =>
 
 var app = builder.Build();
 
+using var scope = app.Services.CreateScope();
+var seeder = scope.ServiceProvider.GetRequiredService<ARMSedder>();
+await seeder.SeedAsync();
+
 app.UseRequestLocalization();
 
 app.UseHttpsRedirection();
@@ -180,6 +188,7 @@ app.UseAuthorization();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
 
 app.UseMiddleware<UnifiedResponseMiddleware>();
 app.UseMiddleware<SecurityHeadersMiddleware>();

@@ -42,11 +42,11 @@ public class UserService(
         return userId;
     }
     
-    public async Task<PublicUserDto> GetCurrentUserAsync()
+    public async Task<PublicCustomerDto> GetCurrentUserAsync()
     {
         var userId = GetUserId();
         var user = await userRepository.GetByIdAsync(userId);
-        return _mapper.Map<PublicUserDto>(user);
+        return _mapper.Map<PublicCustomerDto>(user);
     }
 
     public async Task<UserDto> UpdateProfileAsync(UpdateUserDto updateDto)
@@ -97,7 +97,7 @@ public class UserService(
 
     public async Task<UserDto> CreateUserAsync(CreateUserDto createUserDto)
     {
-        var role = await _roleService.GetRoleByNameAsync("Client");
+        var role = await _roleService.GetRoleByNameAsync("Admin");
         await _createUserValidator.ValidateAndThrowAsync(createUserDto);
         
         var existingUser = (await userRepository.FindAsync(

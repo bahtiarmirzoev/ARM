@@ -12,7 +12,7 @@ public class UserProfile : Profile
     {
         CreateMap<UserEntity, UserDto>()
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role));
-        CreateMap<UserEntity, PublicUserDto>(); 
+        CreateMap<UserEntity, PublicCustomerDto>(); 
         CreateMap<CreateUserDto, UserEntity>();
         CreateMap<UpdateUserDto, UserEntity>();
     }

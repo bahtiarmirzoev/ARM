@@ -28,7 +28,7 @@ public class ServiceRepository : IServiceRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return services.Any() ? services : throw new AppException(ExceptionType.NotFound, "NoServicesFound");
+        return services;
     }
 
     public async Task AddAsync(ServiceEntity entity)

@@ -14,8 +14,6 @@ public class BrandDto
     public int MaxCarsPerDay { get; set; }
     public bool HasParking { get; set; }
     public bool HasWaitingRoom { get; set; }
-    public double Latitude { get; set; }
-    public double Longitude { get; set; }
     public ICollection<VenueDto> Venues { get; set; } = [];
     public ICollection<WorkingHourDto> WorkingHours { get; set; } = [];
 }

@@ -28,7 +28,7 @@ public class RoleRepository : IRoleRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return roles.Any() ? roles : throw new AppException(ExceptionType.NotFound, "NoRolesFound");
+        return roles;
     }
 
     public async Task AddAsync(RoleEntity entity)

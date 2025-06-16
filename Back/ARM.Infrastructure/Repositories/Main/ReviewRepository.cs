@@ -30,7 +30,7 @@ public class ReviewRepository : IReviewRepository
             .AsNoTracking()
             .ToListAsync();
 
-        return reviews.Any() ? reviews : throw new AppException(ExceptionType.NotFound, "NoReviewsFound");
+        return reviews;
     }
 
     public async Task AddAsync(ReviewEntity entity)
