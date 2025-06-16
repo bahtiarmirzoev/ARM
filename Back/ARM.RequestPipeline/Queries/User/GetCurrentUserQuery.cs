@@ -3,4 +3,4 @@ using MediatR;
 
 namespace ARM.RequestPipeline.Queries.User;
 
-public record GetCurrentUserQuery : IRequest<PublicCustomerDto>;
+public record GetCurrentUserQuery : IRequest<UserDto>;

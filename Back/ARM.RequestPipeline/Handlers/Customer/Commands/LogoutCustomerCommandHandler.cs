@@ -1,8 +1,8 @@
 using ARM.Core.Abstractions.Services.Auth;
-using ARM.RequestPipeline.Commands.CustomerAuth;
+using ARM.RequestPipeline.Commands.Customer;
 using MediatR;
 
-namespace ARM.RequestPipeline.Handlers.CustomerAuth.Commands;
+namespace ARM.RequestPipeline.Handlers.Customer.Commands;
 
 public class LogoutCustomerCommandHandler : IRequestHandler<LogoutCustomerCommand, bool>
 {

@@ -8,7 +8,7 @@ namespace ARM.Core.Abstractions.Services.Main;
 
 public interface IUserService
 {
-    Task<PublicCustomerDto> GetCurrentUserAsync();
+    Task<UserDto> GetCurrentUserAsync();
     Task<UserDto> UpdateProfileAsync(UpdateUserDto updateDto);
     Task<string> GetUserPasswordHashAsync(string userId);
     Task UpdateUserPasswordAsync(string userId, string newPassword);

@@ -1,5 +1,5 @@
 using MediatR;
 
-namespace ARM.RequestPipeline.Commands.CustomerAuth;
+namespace ARM.RequestPipeline.Commands.Customer;
 
 public record LogoutCustomerCommand() : IRequest<bool>;

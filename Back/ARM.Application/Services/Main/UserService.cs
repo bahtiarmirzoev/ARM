@@ -32,26 +32,20 @@ public class UserService(
     private readonly IValidator<CreateUserDto> _createUserValidator = createUserValidator;
     private readonly IValidator<UpdateUserDto> _updateUserValidator = updateUserValidator;
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
-
-    private string GetUserId()
-    {
-        var userId = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId) || userId.Length != 24)
-            throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
-
-        return userId;
-    }
     
-    public async Task<PublicCustomerDto> GetCurrentUserAsync()
+    private HttpContext httpContext => httpContextAccessor.HttpContext;
+    
+    
+    public async Task<UserDto> GetCurrentUserAsync()
     {
-        var userId = GetUserId();
+        var userId = httpContext.GetUserId();
         var user = await userRepository.GetByIdAsync(userId);
-        return _mapper.Map<PublicCustomerDto>(user);
+        return _mapper.Map<UserDto>(user); 
     }
 
     public async Task<UserDto> UpdateProfileAsync(UpdateUserDto updateDto)
     {
-        var userId = GetUserId();
+        var userId = httpContext.GetUserId();
         var user = await userRepository.GetByIdAsync(userId);
 
         _mapper.Map(updateDto, user);
@@ -137,7 +131,7 @@ public class UserService(
 
     public async Task<UserDto> ConfirmEmailAsync()
     {
-        var userId = GetUserId();
+        var userId = httpContext.GetUserId();
         var user = await userRepository.GetByIdAsync(userId);
         user.EmailVerified = true;
         await userRepository.UpdateAsync([user]);

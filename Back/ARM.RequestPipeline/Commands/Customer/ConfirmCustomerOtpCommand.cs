@@ -1,6 +1,6 @@
 using ARM.Core.Dtos.Read;
 using MediatR;
 
-namespace ARM.RequestPipeline.Commands.CustomerAuth;
+namespace ARM.RequestPipeline.Commands.Customer;
 
 public record ConfirmCustomerOtpCommand(string S, string O) : IRequest<CustomerDto>;

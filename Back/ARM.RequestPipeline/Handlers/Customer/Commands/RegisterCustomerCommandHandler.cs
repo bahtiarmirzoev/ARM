@@ -1,14 +1,8 @@
-using ARM.Common.Exceptions;
-using ARM.Core.Abstractions.Repositories.Main;
 using ARM.Core.Abstractions.Services.Auth;
-using ARM.Core.Abstractions.Services.Main;
-using ARM.Core.Dtos.Create;
-using ARM.RequestPipeline.Commands.CustomerAuth;
-using FluentValidation;
+using ARM.RequestPipeline.Commands.Customer;
 using MediatR;
-using static NanoidDotNet.Nanoid;
 
-namespace ARM.RequestPipeline.Handlers.CustomerAuth.Commands;
+namespace ARM.RequestPipeline.Handlers.Customer.Commands;
 
 public class RegisterCustomerCommandHandler : IRequestHandler<RegisterCustomerCommand, string>
 {

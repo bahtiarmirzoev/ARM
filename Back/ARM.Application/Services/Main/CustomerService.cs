@@ -43,14 +43,14 @@ public class CustomerService : ICustomerService
         _updateValidator = updateValidator;
         _unitOfWork = unitOfWork;
     }
-
-    private string GetUserId()
+    
+    private HttpContext httpContext => _httpContextAccessor.HttpContext;
+    
+    public async Task<PublicCustomerDto> GetCurrentCustomerAsync()
     {
-        var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId))
-            throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
-
-        return userId;
+        var userId = httpContext.GetCustomerId();
+        var user = await _customerRepository.GetByIdAsync(userId);
+        return _mapper.Map<PublicCustomerDto>(user); 
     }
 
     public async Task<CustomerDto> CreateAsync(CreateCustomerDto dto)
@@ -77,7 +77,6 @@ public class CustomerService : ICustomerService
 
     public async Task<CustomerDto> UpdateAsync(string id, UpdateCustomerDto dto)
     {
-        var userId = GetUserId();
         var existingCustomer = (await _customerRepository.FindAsync(
                 c => c.Id == id))
             .FirstOrDefault()
@@ -102,7 +101,6 @@ public class CustomerService : ICustomerService
 
     public async Task<bool> DeleteAsync(string id)
     {
-        var userId = GetUserId();
         var customer = (await _customerRepository.FindAsync(
                 c => c.Id == id))
             .FirstOrDefault()
@@ -122,8 +120,8 @@ public class CustomerService : ICustomerService
 
     public async Task<IEnumerable<CustomerDto>> GetAllAsync()
     {
-        var userId = GetUserId();
-        var customers = await _customerRepository.FindAsync(c => c.Id == userId);
+        var customerId = httpContext.GetCustomerId();
+        var customers = await _customerRepository.FindAsync(c => c.Id == customerId);
         return _mapper.Map<IEnumerable<CustomerDto>>(customers);
     }
 

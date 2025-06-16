@@ -1,9 +1,8 @@
 using ARM.Core.Abstractions.Services.Auth;
-using ARM.Core.Dtos.Auth;
-using ARM.RequestPipeline.Commands.CustomerAuth;
+using ARM.RequestPipeline.Commands.Customer;
 using MediatR;
 
-namespace ARM.RequestPipeline.Handlers.CustomerAuth.Commands;
+namespace ARM.RequestPipeline.Handlers.Customer.Commands;
 
 public class LoginCustomerCommandHandler : IRequestHandler<LoginCustomerCommand, bool>
 {
