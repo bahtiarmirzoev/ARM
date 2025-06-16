@@ -114,9 +114,9 @@ public class AuthService(
         return sessionId;
     }
 
-    public async Task<UserDto> ConfirmOtpAsync(string sessionId, string otp)
+    public async Task<UserDto> ConfirmOtpAsync(string sessionId, int otp)
     {
-        if (string.IsNullOrWhiteSpace(sessionId) || string.IsNullOrWhiteSpace(otp))
+        if (string.IsNullOrWhiteSpace(sessionId) || int.IsNegative(otp))
             throw new AppException(ExceptionType.InvalidRequest, "SessionIdAndOtpRequired");
 
         var isOtpValid = await otpService.VerifyOtpAsync(sessionId, otp);

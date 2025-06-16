@@ -46,24 +46,11 @@ public class CustomerAuthService(
 
         if (!Verify(loginDto.Password, credentials.Password))
             throw new AppException(ExceptionType.InvalidRequest, "InvalidEmailOrPassword");
-
-        var accessToken = tokenService.GenerateAccessToken(customer);
-        var refreshToken = tokenService.GenerateRefreshToken();
-
-        var refreshExpiry = DateTime.UtcNow.AddDays(RefreshTokenLifespanDays);
-
-        await userActiveSessionsService.AddUserActiveSessionAsync(new CreateUserActiveSessionDto
-        {
-            UserId = customer.Id,
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            RefreshTokenExpiryTime = refreshExpiry,
-            DeviceInfo = httpRequest.GetDeviceInfo()
-        });
         
-        httpContext.SetAuthCookies(accessToken, refreshToken);
-
-        return true;
+        var otpCode = await otpService.GenerateAndSaveOtpAsync(customer.Id);
+        
+        await emailService.SendOtpAsync(customer.Email, otpCode);
+        return false;
     }
 
     public async Task<string> RegisterAsync(CreateCustomerDto customerDto)
@@ -87,9 +74,9 @@ public class CustomerAuthService(
         return sessionId;
     }
 
-    public async Task<CustomerDto> ConfirmOtpAsync(string sessionId, string otp)
+    public async Task<CustomerDto> ConfirmOtpAsync(string sessionId, int otp)
     {
-        if (string.IsNullOrWhiteSpace(sessionId) || string.IsNullOrWhiteSpace(otp))
+        if (string.IsNullOrWhiteSpace(sessionId) || int.IsNegative(otp))
             throw new AppException(ExceptionType.InvalidRequest, "SessionIdAndOtpRequired");
 
         var isOtpValid = await otpService.VerifyOtpAsync(sessionId, otp);
@@ -104,6 +91,38 @@ public class CustomerAuthService(
 
         return customer;
     }
+    
+    public async Task<bool> VerifyTwoFactorAsync(string customerId, int otpCode)
+    {
+        if (int.IsNegative(otpCode))
+            throw new AppException(ExceptionType.InvalidRequest, "OtpCodeRequired");
+
+        var isValid = await otpService.VerifyOtpAsync(customerId, otpCode);
+        if (!isValid)
+            throw new AppException(ExceptionType.InvalidCredentials, "InvalidOrExpiredOtp");
+
+        var customer = await customerService.GetByIdAsync(customerId);
+        var accessToken = tokenService.GenerateAccessToken(customer);
+        var refreshToken = tokenService.GenerateRefreshToken();
+        var refreshExpiry = DateTime.UtcNow.AddDays(RefreshTokenLifespanDays);
+
+        await userActiveSessionsService.AddUserActiveSessionAsync(new CreateUserActiveSessionDto
+        {
+            UserId = customer.Id,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            RefreshTokenExpiryTime = refreshExpiry,
+            DeviceInfo = httpRequest.GetDeviceInfo()
+        });
+
+        httpContext.SetAuthCookies(accessToken, refreshToken);
+        
+        await emailService.SendMessageAsync(customer.Email);
+        await otpService.ClearOtpAndPendingCustomerAsync(customerId);
+
+        return true;
+    }
+
 
     public async Task<AccessInfoDto> RefreshTokenAsync()
     {

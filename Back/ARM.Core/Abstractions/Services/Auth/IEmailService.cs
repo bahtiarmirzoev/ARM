@@ -3,5 +3,6 @@
 public interface IEmailService
 {
     Task SendOtpAsync(string email, string otpCode);
+    Task SendMessageAsync(string email);
     Task SendVerificationLinkAsync();
 }

@@ -53,6 +53,24 @@ public class EmailService(IHttpContextAccessor httpContextAccessor,
         await client.SendMailAsync(message);
     }
 
+    public async Task SendMessageAsync(string email)
+    {
+        var newMessage = new MailMessage(_smtpSettings.From, email)
+        {
+            Subject = "Login",
+            Body = "Success login!",
+            IsBodyHtml = false
+        };
+        
+        using var client = new SmtpClient(_smtpSettings.Host, _smtpSettings.Port)
+        {
+            Credentials = new NetworkCredential(_smtpSettings.Username, _smtpSettings.Password),
+            EnableSsl = true
+        };
+
+        await client.SendMailAsync(newMessage);
+    }
+
     public async Task SendVerificationLinkAsync()
     {
         var httpContext = httpContextAccessor.HttpContext;

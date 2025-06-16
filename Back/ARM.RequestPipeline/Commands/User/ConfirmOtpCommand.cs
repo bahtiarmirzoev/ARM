@@ -3,4 +3,4 @@ using MediatR;
 
 namespace ARM.RequestPipeline.Commands.User;
 
-public record ConfirmOtpCommand(string S, string O) : IRequest<UserDto>;
+public record ConfirmOtpCommand(string S, int O) : IRequest<UserDto>;

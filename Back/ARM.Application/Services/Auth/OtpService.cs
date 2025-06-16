@@ -28,9 +28,9 @@ public class OtpService(IRedisCacheService redisCache) : IOtpService
         return token;
     }
 
-    public async Task<bool> VerifyOtpAsync(string si, string otp)
+    public async Task<bool> VerifyOtpAsync(string si, int otp)
     {
-        var storedOtp = await redisCache.GetAsync<string>($"otp:{si}");
+        var storedOtp = await redisCache.GetAsync<int>($"otp:{si}");
         return storedOtp == otp;
     }
     public async Task SavePendingUserAsync(string si, CreateUserDto userDto)

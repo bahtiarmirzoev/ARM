@@ -8,7 +8,7 @@ public interface IAuthService
 {
     Task<bool> LoginAsync(LoginDto loginDto);
     Task<string> RegisterAsync(CreateUserDto createUserDto);
-    Task<UserDto> ConfirmOtpAsync(string sessionId, string otp);
+    Task<UserDto> ConfirmOtpAsync(string sessionId, int otp);
     Task<AccessInfoDto> RefreshTokenAsync();
     Task<bool> LogoutAsync();
 }

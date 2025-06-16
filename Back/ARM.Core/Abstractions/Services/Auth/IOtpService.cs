@@ -6,7 +6,7 @@ public interface IOtpService
 {
     Task<string> GenerateAndSaveOtpAsync(string sessionId);
     Task<string> GenerateAndSaveEmailVerificationTokenAsync(string userId);
-    Task<bool> VerifyOtpAsync(string sessionId, string otp);
+    Task<bool> VerifyOtpAsync(string sessionId, int otp);
     Task SavePendingUserAsync(string sessionId, CreateUserDto userDto);
     Task<CreateUserDto?> GetPendingUserAsync(string sessionId);
     Task ClearOtpAndPendingUserAsync(string sessionId);

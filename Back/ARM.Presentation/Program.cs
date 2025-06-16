@@ -3,6 +3,7 @@ using System.Text;
 using ARM.Application.Services.Main;
 using ARM.Application.Services.Auth;
 using ARM.Application.Validators.Create;
+using ARM.Common.Extensions;
 using ARM.Core.Abstractions.Repositories.Auth;
 using ARM.Core.Abstractions.Services.Main;
 using ARM.Core.Abstractions.Services.Auth;
@@ -38,8 +39,9 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            if (context.Request.Cookies.ContainsKey("atk"))
-                context.Token = context.Request.Cookies["atk"];
+            var token = context.HttpContext.GetAccessToken();
+            if (!string.IsNullOrEmpty(token))
+                context.Token = token;
 
             return Task.CompletedTask;
         }

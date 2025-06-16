@@ -17,7 +17,6 @@ public static class HttpContextExtensions
         => httpContext.GetClaimValue("userId");
     public static string GetCustomerId(this HttpContext httpContext)
         => httpContext.GetClaimValue("customerId");
-
     public static string GetAutoServiceId(this HttpContext httpContext)
         => httpContext.GetClaimValue("autoServiceId");
 
