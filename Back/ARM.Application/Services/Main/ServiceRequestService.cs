@@ -44,7 +44,7 @@ public class ServiceRequestService : IServiceRequestService
             var serviceRequestEntity = _mapper.Map<ServiceRequestEntity>(dto);
             serviceRequestEntity.RequestDate = DateTime.UtcNow;
             await _serviceRequestRepository.AddAsync(serviceRequestEntity);
-            
+
             return _mapper.Map<ServiceRequestDto>(serviceRequestEntity);
         });
     }
@@ -53,13 +53,13 @@ public class ServiceRequestService : IServiceRequestService
     {
         var existingRequest = await _serviceRequestRepository.GetByIdAsync(id);
         await _updateServiceRequestValidator.ValidateAndThrowAsync(dto);
-        
+
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             _mapper.Map(dto, existingRequest);
             existingRequest.UpdatedAt = DateTime.UtcNow;
             await _serviceRequestRepository.UpdateAsync(new[] { existingRequest });
-            
+
             return _mapper.Map<ServiceRequestDto>(existingRequest);
         });
     }
@@ -105,4 +105,4 @@ public class ServiceRequestService : IServiceRequestService
         var requests = await _serviceRequestRepository.FindAsync(r => r.Status == requestStatus);
         return _mapper.Map<IEnumerable<ServiceRequestDto>>(requests);
     }
-} 
+}

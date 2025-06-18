@@ -1,9 +1,8 @@
-﻿using ARM.Common.Extensions;
-using ARM.Core.Abstractions.Services.Auth;
-using ARM.RequestPipeline.Commands.User;
+﻿using ARM.Core.Abstractions.Services.Auth;
+using ARM.RequestPipeline.Commands.Customer;
 using MediatR;
 
-namespace ARM.RequestPipeline.Handlers.User.Commands;
+namespace ARM.RequestPipeline.Handlers.Customer.Commands;
 
 public class SendVerificationEmailCommandHandler(IEmailService emailService)
     : IRequestHandler<SendVerificationEmailCommand, bool>

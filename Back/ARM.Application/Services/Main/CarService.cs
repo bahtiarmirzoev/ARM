@@ -24,6 +24,8 @@ public class CarService : ICarService
     private readonly IValidator<UpdateCarDto> _updateCarValidator;
     private readonly IUnitOfWork _unitOfWork;
 
+    private HttpContext context => _httpContextAccessor.HttpContext;
+
     public CarService(
         IMapper mapper,
         IHttpContextAccessor httpContextAccessor,
@@ -42,7 +44,7 @@ public class CarService : ICarService
 
     public async Task<CarDto> CreateAsync(CreateCarDto dto)
     {
-        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
+        var customerId = context.GetCustomerId();
         await _createCarValidator.ValidateAndThrowAsync(dto);
 
         return await _unitOfWork.StartTransactionAsync(async () =>
@@ -58,7 +60,7 @@ public class CarService : ICarService
 
     public async Task<CarDto> UpdateAsync(string id, UpdateCarDto dto)
     {
-        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
+        var customerId = context.GetCustomerId();
         var existingCar = (await _carRepository.FindAsync(
                 c => c.Id == id && c.OwnerId == customerId))
             .FirstOrDefault()
@@ -77,7 +79,7 @@ public class CarService : ICarService
 
     public async Task<bool> DeleteAsync(string id)
     {
-        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
+        var customerId = context.GetCustomerId();
         var car = (await _carRepository.FindAsync(
                 c => c.Id == id && c.OwnerId == customerId))
             .FirstOrDefault()
@@ -92,13 +94,15 @@ public class CarService : ICarService
 
     public async Task<CarDto> GetByIdAsync(string id)
     {
-        var car = await _carRepository.GetByIdAsync(id);
+        var customerId = context.GetCustomerId();
+        var car = await _carRepository.FindAsync(c => c.Id == id && c.OwnerId == customerId)
+            .EnsureFound("CarNotFound");
         return _mapper.Map<CarDto>(car);
     }
 
     public async Task<IEnumerable<CarDto>> GetAllAsync()
     {
-        var customerId = _httpContextAccessor.HttpContext.GetCustomerId();
+        var customerId = context.GetCustomerId();
         var cars = await _carRepository.FindAsync(u => u.OwnerId == customerId);
         return _mapper.Map<IEnumerable<CarDto>>(cars);
     }

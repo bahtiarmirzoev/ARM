@@ -8,28 +8,47 @@ namespace ARM.Core.Abstractions.Services.Main;
 
 public interface IBrandService
 {
+    // Методы для SuperAdmin
     Task<BrandDto> CreateAsync(CreateBrandDto dto);
-    Task<BrandDto> UpdateAsync(string id, UpdateBrandDto dto);
     Task<bool> DeleteAsync(string id);
-    Task<BrandDto> GetByIdAsync(string id);
-    Task<IEnumerable<BrandDto>> GetAllAsync();
-    Task<PaginatedResponse<BrandDto>> GetPageAsync(int pageNumber, int pageSize);
-    Task<IEnumerable<BrandDto>> GetByCityAsync(string city);
-    Task<IEnumerable<BrandDto>> GetByRatingAsync(decimal minRating);
-    Task<IEnumerable<BrandDto>> GetByWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime);
-    Task<IEnumerable<BrandDto>> GetByPriceRangeAsync(decimal minPrice, decimal maxPrice);
-    Task<Dictionary<string, int>> GetServiceStatisticsAsync(string autoServiceId);
-    Task<Dictionary<string, decimal>> GetRevenueStatisticsAsync(string autoServiceId, DateTime startDate, DateTime endDate);
-    Task<IEnumerable<BrandDto>> GetPopularServicesAsync(int limit = 10);
-    Task<bool> UpdateWorkingHoursAsync(string autoServiceId, TimeSpan startTime, TimeSpan endTime);
-    Task<bool> UpdateContactInfoAsync(string autoServiceId, string phone, string email);
-    Task<bool> UpdateAddressAsync(string autoServiceId, string address);
-    Task<bool> UpdateDescriptionAsync(string autoServiceId, string description);
-    Task<bool> UpdateRatingAsync(string autoServiceId, decimal newRating);
-    Task<IEnumerable<BrandDto>> GetNearbyServicesAsync(double latitude, double longitude, double radiusKm);
-    Task<Dictionary<string, int>> GetTechnicianWorkloadAsync(string autoServiceId);
-    Task<bool> UpdateCapacityAsync(string autoServiceId, int maxConcurrentServices);
-    Task<Dictionary<string, decimal>> GetAverageServiceTimeAsync(string autoServiceId);
-    Task<IEnumerable<BrandDto>> GetByAvailabilityAsync(bool isAvailable);
-    Task<bool> ToggleAvailabilityAsync(string autoServiceId, bool isAvailable);
-} 
+    Task<IEnumerable<BrandDto>> GetAllBrandsAsync();
+    Task<PaginatedResponse<BrandDto>> GetBrandsPageAsync(int pageNumber, int pageSize);
+    Task<BrandStatisticsDto> GetServiceStatisticsAsync(string brandId);
+    Task<BrandStatisticsDto> GetRevenueStatisticsAsync(string brandId, DateTime startDate, DateTime endDate);
+    Task<bool> BlockBrandAsync(string brandId, bool isBlocked);
+    Task<bool> VerifyBrandAsync(string brandId, bool isVerified);
+    Task<Dictionary<string, object>> GetSystemStatisticsAsync();
+    Task<bool> UpdateBrandStatusAsync(string brandId, string status);
+    Task<IEnumerable<BrandDto>> GetBlockedBrandsAsync();
+    Task<IEnumerable<BrandDto>> GetUnverifiedBrandsAsync();
+
+    // Методы для Admin (владелец бренда)
+    Task<BrandDto> UpdateBrandAsync(string id, UpdateBrandDto dto);
+    Task<BrandDetailedInfoDto> GetAdminBrandAsync();
+    Task<BrandStatisticsDto> GetAdminServiceStatisticsAsync();
+    Task<BrandStatisticsDto> GetAdminRevenueStatisticsAsync(DateTime startDate, DateTime endDate);
+    Task<bool> UpdateAdminWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime);
+    Task<bool> UpdateAdminContactInfoAsync(string phone, string email);
+    Task<bool> UpdateAdminAddressAsync(string address);
+    Task<bool> UpdateAdminDescriptionAsync(string description);
+    Task<bool> UpdateAdminCapacityAsync(int maxConcurrentServices);
+    Task<bool> ToggleAdminAvailabilityAsync(bool isAvailable);
+    Task<bool> UpdateAdminServicesAsync(IEnumerable<ServiceEntity> services);
+
+    // Методы для Manager
+    Task<BrandDetailedInfoDto> GetManagerBrandInfoAsync();
+    Task<bool> UpdateManagerWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime);
+    Task<bool> ToggleManagerAvailabilityAsync(bool isAvailable);
+    Task<BrandStatisticsDto> GetManagerDailyStatisticsAsync();
+
+    // Методы для клиентов
+    Task<IEnumerable<BrandDto>> GetAvailableBrandsAsync();
+    Task<IEnumerable<BrandDto>> GetBrandsByCityAsync(string city);
+    Task<IEnumerable<BrandDto>> GetBrandsByRatingAsync(decimal minRating);
+    Task<IEnumerable<BrandDto>> GetBrandsByWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime);
+    Task<IEnumerable<BrandDto>> GetBrandsByPriceRangeAsync(decimal minPrice, decimal maxPrice);
+    Task<IEnumerable<BrandDto>> GetPopularBrandsAsync(int limit = 10);
+    Task<BrandDetailedInfoDto> GetBrandByIdAsync(string id);
+    Task<IEnumerable<BrandDto>> GetVerifiedBrandsAsync();
+    Task<BrandDetailedInfoDto> GetBrandDetailedInfoAsync(string brandId);
+}

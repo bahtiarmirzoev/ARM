@@ -20,8 +20,6 @@ public class BrandEntity
     public bool HasWaitingRoom { get; set; }
     public ICollection<ServiceEntity> Services { get; set; } = [];
     public ICollection<ReviewEntity> Reviews { get; set; } = [];
-    public double Latitude { get; set; }
-    public double Longitude { get; set; }
     public bool IsOpen { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }

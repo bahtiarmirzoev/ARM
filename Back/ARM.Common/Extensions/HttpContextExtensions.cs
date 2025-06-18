@@ -1,28 +1,27 @@
-﻿using System.Security.Claims;
-using ARM.Common.Exceptions;
+﻿using ARM.Common.Exceptions;
 using Microsoft.AspNetCore.Http;
+using static ARM.Core.Constants.ClaimKeys;
 
 namespace ARM.Common.Extensions;
 
 public static class HttpContextExtensions
 {
     private static string GetClaimValue(this HttpContext httpContext, string claimType)
-    {
-        var value = httpContext.User.FindFirst(claimType)?.Value;
-        if (string.IsNullOrWhiteSpace(value))
-            throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
-        return value;
-    }
+        =>  string.IsNullOrWhiteSpace(httpContext.User.FindFirst(claimType)?.Value)
+            ? throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized")
+            : httpContext.User.FindFirst(claimType)!.Value;
     public static string GetUserId(this HttpContext httpContext)
-        => httpContext.GetClaimValue("userId");
+        => httpContext.GetClaimValue(UserId);
     public static string GetCustomerId(this HttpContext httpContext)
-        => httpContext.GetClaimValue("customerId");
-    public static string GetAutoServiceId(this HttpContext httpContext)
-        => httpContext.GetClaimValue("autoServiceId");
-
+        => httpContext.GetClaimValue(CustomerId);
+    public static string GetBrandId(this HttpContext httpContext)
+        => httpContext.GetClaimValue(BrandId);
     public static string GetPanel(this HttpContext httpContext)
-        => httpContext.GetClaimValue("panel");
-
+        => httpContext.GetClaimValue(Panel);
+    public static string GetUserRole(this HttpContext httpContext)
+        => httpContext.GetClaimValue(Role);
+    public static string GetRoleId(this HttpContext httpContext)
+        => httpContext.GetClaimValue(RoleId);
     public static string GetEmail(this HttpContext httpContext)
-        => httpContext.GetClaimValue(ClaimTypes.Email);
+        => httpContext.GetClaimValue(Email);
 }

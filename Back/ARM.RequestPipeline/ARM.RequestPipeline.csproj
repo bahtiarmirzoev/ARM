@@ -13,9 +13,11 @@
 
     <ItemGroup>
       <Folder Include="Commands\" />
+      <Folder Include="Commands\Brand\" />
       <Folder Include="Handlers\" />
       <Folder Include="Handlers\Brand\" />
       <Folder Include="Queries\" />
+      <Folder Include="Queries\Brand\" />
     </ItemGroup>
 
     <ItemGroup>

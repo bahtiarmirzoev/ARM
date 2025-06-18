@@ -13,28 +13,10 @@ using Microsoft.Extensions.Options;
 namespace ARM.Application.Services.Auth;
 
 public class EmailService(IHttpContextAccessor httpContextAccessor,
-    IUserRepository userRepository, IOtpService otpService,
+    ICustomerRepository cutsomerRepository, IOtpService otpService,
     IOptions<SmtpSettingsDto> smtpOptions) : IEmailService
 {
     private readonly SmtpSettingsDto _smtpSettings = smtpOptions.Value;
-
-    private string GetUserId()
-    {
-        var userId = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId) || userId.Length != 24)
-            throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
-
-        return userId;
-    }
-    
-    private string GetUserEmail()
-    {
-        var email = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
-        if (string.IsNullOrWhiteSpace(email))
-            throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
-
-        return email;
-    }
     public async Task SendOtpAsync(string email, string otpCode)
     {
         var message = new MailMessage(_smtpSettings.From, email)
@@ -53,12 +35,12 @@ public class EmailService(IHttpContextAccessor httpContextAccessor,
         await client.SendMailAsync(message);
     }
 
-    public async Task SendMessageAsync(string email)
+    public async Task SendMessageAsync(string email, string name, string surname)
     {
         var newMessage = new MailMessage(_smtpSettings.From, email)
         {
             Subject = "Login",
-            Body = "Success login!",
+            Body = $"Sucess!\nHello, {name} {surname}!",
             IsBodyHtml = false
         };
         
@@ -75,10 +57,10 @@ public class EmailService(IHttpContextAccessor httpContextAccessor,
     {
         var httpContext = httpContextAccessor.HttpContext;
 
-        var userId = GetUserId();
-        var email = GetUserEmail();
+        var customerId = httpContext.GetCustomerId();
+        var email = httpContext.GetEmail();
 
-        var user = await userRepository.GetByIdAsync(userId);
+        var user = await cutsomerRepository.GetByIdAsync(customerId);
     
         if (user.EmailVerified)
             throw new AppException(ExceptionType.EmailAlreadyConfirmed, "EmailAlreadyConfirmed");
@@ -93,7 +75,7 @@ public class EmailService(IHttpContextAccessor httpContextAccessor,
         var request = httpContext.Request;
         var baseUrl = $"{request.Scheme}://{request.Host.Value}";
 
-        var token = await otpService.GenerateAndSaveEmailVerificationTokenAsync(userId);
+        var token = await otpService.GenerateAndSaveEmailVerificationTokenAsync(customerId);
         var verifyUrl = $"{baseUrl}/api/b/ve?t={WebUtility.UrlEncode(token)}";
 
         var htmlBody = ConfirmEmailTemplate.GetTemplate(verifyUrl, lang);

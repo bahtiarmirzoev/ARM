@@ -10,9 +10,7 @@ public class PermissionProfile : Profile
 {
     public PermissionProfile()
     {
-        CreateMap<PermissionEntity, PermissionDto>()
-            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles))
-            .ForMember(dest => dest.Users, opt => opt.MapFrom(src => src.Users));
+        CreateMap<PermissionEntity, PermissionDto>();
         
         CreateMap<CreatePermissionDto, PermissionEntity>();
         

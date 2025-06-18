@@ -3,6 +3,7 @@ using System;
 using ARM.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ARM.Infrastructure.Migrations
 {
     [DbContext(typeof(ARMContext))]
-    partial class ARMContextModelSnapshot : ModelSnapshot
+    [Migration("20250616184721_21")]
+    partial class _21
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,6 +135,14 @@ namespace ARM.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
+                    b.Property<double>("Latitude")
+                        .HasPrecision(10, 6)
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasPrecision(10, 6)
+                        .HasColumnType("double precision");
+
                     b.Property<int>("MaxCarsPerDay")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -166,6 +177,8 @@ namespace ARM.Infrastructure.Migrations
 
                     b.HasIndex("PhoneNumber")
                         .IsUnique();
+
+                    b.HasIndex("Latitude", "Longitude");
 
                     b.ToTable("Brands");
                 });
@@ -742,6 +755,9 @@ namespace ARM.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("EmailVerified")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");

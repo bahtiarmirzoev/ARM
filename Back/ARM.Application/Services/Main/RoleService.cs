@@ -20,38 +20,33 @@ public class RoleService(
     IRoleRepository roleRepository,
     IUserRepository userRepository,
     IPermissionRepository permissionRepository,
+    IPermissionService permissionService,
     IValidator<CreateRoleDto> createRoleValidator,
     IValidator<UpdateRoleDto> updateRoleValidator,
     IUnitOfWork unitOfWork)
     : IRoleService
 {
-    private string GetUserId()
-    {
-        var userId = httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId) || userId.Length != 24)
-            throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
-
-        return userId;
-    }
+    private HttpContext context => httpContextAccessor.HttpContext;
 
     public async Task<IEnumerable<RoleDto>> GetAllRolesAsync()
     {
+        await permissionService.EnsurePermissionAsync("role_view");
         var roles = await roleRepository.GetAllAsync();
         return mapper.Map<IEnumerable<RoleDto>>(roles);
     }
 
     public async Task<RoleDto?> GetRoleByNameAsync(string name)
     {
+        await permissionService.EnsurePermissionAsync("role_view");
         var role = (await roleRepository.FindAsync(r => r.Name == name))
             .FirstOrDefault()
             .EnsureFound("RoleNotFound");
 
         return mapper.Map<RoleDto>(role);
     }
-
     public async Task<RoleDto> GetCurrentUserRoleAsync()
     {
-        var userId = GetUserId();
+        var userId = context.GetUserId();
         var user = await userRepository.GetByIdAsync(userId);
 
         return mapper.Map<RoleDto>(user.Role);
@@ -59,56 +54,86 @@ public class RoleService(
 
     public async Task<IEnumerable<PermissionDto>> GetRolePermissionsAsync(string roleId)
     {
+        await permissionService.EnsurePermissionAsync("role_permission_view");
         var permissions = await permissionRepository
-                              .FindAsync(p => p.Roles.Any(r => r.Id == roleId))
-                          ?? throw new AppException(ExceptionType.NotFound, "RoleNotFound");
+            .FindAsync(p => p.Roles.Any(r => r.Id == roleId));
 
         return mapper.Map<IEnumerable<PermissionDto>>(permissions);
     }
 
+
     public async Task<bool> UserHasRoleAsync(string roleName)
     {
-        var userId = GetUserId();
+        await permissionService.EnsurePermissionAsync("role_check");
+        var userId = context.GetUserId();
         var user = await userRepository.GetByIdAsync(userId);
 
         return user.Role.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase);
     }
 
+
     public async Task<IEnumerable<UserDto>> GetUsersInRoleAsync(string roleId)
     {
+        await permissionService.EnsurePermissionAsync("role_user_list");
         var users = await userRepository.FindAsync(u => u.RoleId == roleId);
-
         return mapper.Map<IEnumerable<UserDto>>(users);
     }
 
+
     public async Task<bool> RoleHasPermissionAsync(string roleId, string permissionName)
     {
-        var permissions = await permissionRepository
-            .FindAsync(p => p.Roles.Any(r => r.Id == roleId) && p.Name == permissionName);
+        await permissionService.EnsurePermissionAsync("role_permission_check");
+        return await permissionRepository.AnyAsync(p =>
+            p.Roles.Any(r => r.Id == roleId)
+            && p.Name == permissionName);
+    }
 
-        return permissions.Any();
+
+
+    public async Task<RoleDto> AddPermissionToRoleAsync(string roleId, List<string> permissionNames)
+    {
+        await permissionService.EnsurePermissionAsync("role_permission_add");
+        var role = await roleRepository.GetByIdAsync(roleId);
+        var permissions = await permissionRepository
+            .FindAsync(p => permissionNames.Contains(p.Name));
+        
+        if (!permissions.Any())
+            throw new AppException(ExceptionType.NotFound, "PermissionsNotFound");
+        
+        foreach (var permission in permissions)
+        {
+            if (!role.Permissions.Any(p => p.Id == permission.Id))
+                role.Permissions.Add(permission);
+        }
+        return await unitOfWork.StartTransactionAsync(async () =>
+        {
+            await roleRepository.UpdateAsync([role]);
+            return mapper.Map<RoleDto>(role);
+        });
     }
 
     public async Task<RoleDto> CreateAsync(CreateRoleDto roleDto)
     {
+        await permissionService.EnsurePermissionAsync("role_create");
         await createRoleValidator.ValidateAndThrowAsync(roleDto);
 
         return await unitOfWork.StartTransactionAsync(async () =>
         {
             var role = mapper.Map<RoleEntity>(roleDto);
             await roleRepository.AddAsync(role);
-
             return mapper.Map<RoleDto>(role);
         });
     }
 
+
     public async Task<RoleDto> UpdateAsync(string id, UpdateRoleDto roleDto)
     {
+        await permissionService.EnsurePermissionAsync("role_update");
         var existingRole = await roleRepository.GetByIdAsync(id);
 
         await updateRoleValidator.ValidateAndThrowAsync(roleDto);
-
         mapper.Map(roleDto, existingRole);
+
         await roleRepository.UpdateAsync(new[] { existingRole });
         await unitOfWork.SaveChangesAsync();
 
@@ -117,11 +142,12 @@ public class RoleService(
 
     public async Task<bool> DeleteAsync(string id)
     {
+        await permissionService.EnsurePermissionAsync("role_delete");
         return await unitOfWork.StartTransactionAsync(async () =>
         {
             await roleRepository.DeleteAsync(id);
-
             return true;
         });
     }
+
 }

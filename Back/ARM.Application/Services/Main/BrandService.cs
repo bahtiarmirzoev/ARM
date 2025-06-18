@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Linq;
 using ARM.Common.Exceptions;
 using AutoMapper;
 using FluentValidation;
@@ -17,141 +18,94 @@ using NanoidDotNet;
 
 namespace ARM.Application.Services.Main;
 
-public class BrandService : IBrandService
+public class BrandService(
+    IMapper mapper,
+    IHttpContextAccessor httpContextAccessor,
+    IBrandRepository brandRepository,
+    IServiceRepository serviceRepository,
+    IVenueRepository venueRepository,
+    IPermissionService permissionService,
+    IValidator<CreateBrandDto> createAutoServiceValidator,
+    IValidator<UpdateBrandDto> updateAutoServiceValidator,
+    IUnitOfWork unitOfWork)
+    : IBrandService
 {
-    private readonly IMapper _mapper;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IBrandRepository _brandRepository;
-    private readonly IServiceRepository _serviceRepository;
-    private readonly IVenueRepository _venueRepository;
-    private readonly IValidator<CreateBrandDto> _createAutoServiceValidator;
-    private readonly IValidator<UpdateBrandDto> _updateAutoServiceValidator;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IServiceRepository _serviceRepository = serviceRepository;
 
-    public BrandService(
-        IMapper mapper,
-        IHttpContextAccessor httpContextAccessor,
-        IBrandRepository brandRepository,
-        IServiceRepository serviceRepository,
-        IVenueRepository venueRepository,
-        IValidator<CreateBrandDto> createAutoServiceValidator,
-        IValidator<UpdateBrandDto> updateAutoServiceValidator,
-        IUnitOfWork unitOfWork)
-    {
-        _mapper = mapper;
-        _httpContextAccessor = httpContextAccessor;
-        _brandRepository = brandRepository;
-        _serviceRepository = serviceRepository;
-        _venueRepository = venueRepository;
-        _createAutoServiceValidator = createAutoServiceValidator;
-        _updateAutoServiceValidator = updateAutoServiceValidator;
-        _unitOfWork = unitOfWork;
-    }
+    private HttpContext context => httpContextAccessor.HttpContext;
 
     public async Task<BrandDto> CreateAsync(CreateBrandDto dto)
     {
-        await _createAutoServiceValidator.ValidateAndThrowAsync(dto);
-        var autoServiceEntity = _mapper.Map<BrandEntity>(dto);
-        autoServiceEntity.Services = new List<ServiceEntity>();
+        await permissionService.EnsurePermissionAsync("brand_create");
+        await createAutoServiceValidator.ValidateAndThrowAsync(dto);
+        var brandEntity = mapper.Map<BrandEntity>(dto);
+        brandEntity.Services = new List<ServiceEntity>();
 
         foreach (var serviceDto in dto.Services)
         {
             var serviceEntity = new ServiceEntity
             {
+                Id = Nanoid.Generate(size: 24),
                 Name = serviceDto.Name,
                 Description = serviceDto.Description,
                 Price = serviceDto.Price,
                 Duration = serviceDto.Duration,
                 IsActive = serviceDto.IsActive,
-                Brand = autoServiceEntity
+                Brand = brandEntity
             };
 
-            autoServiceEntity.Services.Add(serviceEntity);
+            brandEntity.Services.Add(serviceEntity);
         }
 
-        return await _unitOfWork.StartTransactionAsync(async () =>
+        return await unitOfWork.StartTransactionAsync(async () =>
         {
-            await _brandRepository.AddAsync(autoServiceEntity);
-            
-            if (dto.Venues.Any())
-            {
-                foreach (var venueDto in dto.Venues)
-                {
-                    var venueEntity = _mapper.Map<VenueEntity>(venueDto);
-                    venueEntity.BrandId = autoServiceEntity.Id;
-                    venueEntity.Brand = autoServiceEntity;
-                    venueEntity.Services = autoServiceEntity.Services;
-                    await _venueRepository.AddAsync(venueEntity);
-                }
-            }
+            await brandRepository.AddAsync(brandEntity);
 
-            return _mapper.Map<BrandDto>(autoServiceEntity);
-        });
-    }
+            var defaultVenue = mapper.Map<VenueEntity>(brandEntity);
+            defaultVenue.Id = Nanoid.Generate(size: 24);
+            defaultVenue.Name = $"{brandEntity.Name} - Main";
+            defaultVenue.BrandId = brandEntity.Id;
+            defaultVenue.Brand = brandEntity;
 
-    public async Task<BrandDto> UpdateAsync(string id, UpdateBrandDto dto)
-    {
-        var existingAutoService = (await _brandRepository.FindAsync(
-                a => a.Id == id))
-            .FirstOrDefault()
-            .EnsureFound("AutoServiceNotFound");
+            await venueRepository.AddAsync(defaultVenue);
 
-        await _updateAutoServiceValidator.ValidateAndThrowAsync(dto);
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
-        {
-            _mapper.Map(dto, existingAutoService);
-            await _brandRepository.UpdateAsync(new[] { existingAutoService });
-
-            return _mapper.Map<BrandDto>(existingAutoService);
+            return mapper.Map<BrandDto>(brandEntity);
         });
     }
 
     public async Task<bool> DeleteAsync(string id)
     {
-        var autoService = (await _brandRepository.FindAsync(
-                a => a.Id == id))
-            .FirstOrDefault()
-            .EnsureFound("AutoServiceNotFound");
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
+        await permissionService.EnsurePermissionAsync("brand_delete");
+        return await unitOfWork.StartTransactionAsync(async () =>
         {
-            await _brandRepository.DeleteAsync(autoService.Id);
+            await brandRepository.DeleteAsync(id);
             return true;
         });
     }
 
-    public async Task<BrandDto> GetByIdAsync(string id)
+    public async Task<IEnumerable<BrandDto>> GetAllBrandsAsync()
     {
-        var autoService = await _brandRepository.GetByIdAsync(id);
-        return _mapper.Map<BrandDto>(autoService);
+        var brands = await brandRepository.GetAllAsync();
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
     }
 
-    public async Task<IEnumerable<BrandDto>> GetAllAsync()
-    {
-        var autoServices = await _brandRepository.GetAllAsync();
-        return _mapper.Map<IEnumerable<BrandDto>>(autoServices);
-    }
-
-    public async Task<PaginatedResponse<BrandDto>> GetPageAsync(int pageNumber, int pageSize)
+    public async Task<PaginatedResponse<BrandDto>> GetBrandsPageAsync(int pageNumber, int pageSize)
     {
         if (pageNumber <= 0 || pageSize <= 0)
-            throw new AppException(ExceptionType.BadRequest, "PaginationError");
+            throw new AppException(ExceptionType.BadRequest, "InvalidPaginationParameters");
 
-        var totalAutoServices = await _brandRepository.GetAllAsync();
-        var totalItems = totalAutoServices.Count();
+        var brands = await brandRepository.GetAllAsync();
+        var totalItems = brands.Count();
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-        var pagedAutoServices = totalAutoServices
+        var pagedBrands = brands
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToList();
 
-        var autoServiceDtos = _mapper.Map<IEnumerable<BrandDto>>(pagedAutoServices);
-
         return new PaginatedResponse<BrandDto>
         {
-            Data = autoServiceDtos,
+            Data = mapper.Map<IEnumerable<BrandDto>>(pagedBrands),
             TotalItems = totalItems,
             TotalPages = totalPages,
             CurrentPage = pageNumber,
@@ -159,234 +113,429 @@ public class BrandService : IBrandService
         };
     }
 
-    public async Task<IEnumerable<BrandDto>> GetByCityAsync(string city)
+    public async Task<BrandStatisticsDto> GetServiceStatisticsAsync(string brandId)
     {
-        var autoServices = await _brandRepository.FindAsync(a => a.Address.Contains(city));
-        return _mapper.Map<IEnumerable<BrandDto>>(autoServices);
-    }
+        await permissionService.EnsurePermissionAsync("brand_view_statistics");
+        var brands = await brandRepository.FindAsync(b => b.Id == brandId);
+        var brand = brands.FirstOrDefault()
+            .EnsureFound("BrandNotFound");
 
-    public async Task<IEnumerable<BrandDto>> GetByRatingAsync(decimal minRating)
-    {
-        var autoServices = await _brandRepository.FindAsync(a => a.Rating >= minRating);
-        return _mapper.Map<IEnumerable<BrandDto>>(autoServices);
-    }
+        var completedRequests = brand.Services
+            .SelectMany(s => s.ServiceRequests)
+            .Where(r => r.Status == RequestStatus.Completed);
 
-    public async Task<IEnumerable<BrandDto>> GetByWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime)
-    {
-        var autoServices = await _brandRepository.FindAsync(a =>
-            a.WorkingHours.Any(w => w.OpenTime <= startTime && w.CloseTime >= endTime));
-        return _mapper.Map<IEnumerable<BrandDto>>(autoServices);
-    }
-
-
-    public async Task<IEnumerable<BrandDto>> GetByPriceRangeAsync(decimal minPrice, decimal maxPrice)
-    {
-        var autoServices = await _brandRepository.FindAsync(a =>
-            a.Services.Any(s => s.Price >= minPrice && s.Price <= maxPrice));
-        return _mapper.Map<IEnumerable<BrandDto>>(autoServices);
-    }
-
-    public async Task<Dictionary<string, int>> GetServiceStatisticsAsync(string autoServiceId)
-    {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        return new Dictionary<string, int>
+        return new BrandStatisticsDto
         {
-            { "TotalServices", autoService.Services.Count },
-            { "ActiveServices", autoService.Services.Count(s => s.IsActive) },
-            { "TotalRequests", autoService.Services.Sum(s => s.ServiceRequests.Count) },
-            { "CompletedRequests", autoService.Services.Sum(s => s.ServiceRequests.Count(r => r.Status == RequestStatus.Completed)) }
+            TotalServices = brand.Services.Count,
+            ActiveServices = brand.Services.Count(s => s.IsActive),
+            TotalRequests = brand.Services.Sum(s => s.ServiceRequests.Count),
+            CompletedRequests = completedRequests.Count(),
+            TotalRevenue = completedRequests.Sum(r => r.Service.Price),
+            AverageRevenue = completedRequests.Any() ? completedRequests.Average(r => r.Service.Price) : 0,
+            AverageRating = brand.Rating,
+            TotalReviews = brand.TotalReviews,
+            IsOpen = brand.IsOpen,
+            MaxCarsPerDay = brand.MaxCarsPerDay,
+            Services = mapper.Map<ICollection<ServiceDto>>(brand.Services),
+            WorkingHours = mapper.Map<ICollection<WorkingHourDto>>(brand.WorkingHours),
+            Venues = mapper.Map<ICollection<VenueDto>>(brand.Venues)
         };
     }
 
-    public async Task<Dictionary<string, decimal>> GetRevenueStatisticsAsync(string autoServiceId, DateTime startDate, DateTime endDate)
+    public async Task<BrandStatisticsDto> GetRevenueStatisticsAsync(string brandId, DateTime startDate, DateTime endDate)
     {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
+        await permissionService.EnsurePermissionAsync("brand_view_statistics");
+        var brands = await brandRepository.FindAsync(b => b.Id == brandId);
+        var brand = brands.FirstOrDefault()
+            .EnsureFound("BrandNotFound");
 
-        var completedRequests = autoService.Services
+        var completedRequests = brand.Services
             .SelectMany(s => s.ServiceRequests)
             .Where(r => r.Status == RequestStatus.Completed && r.UpdatedAt >= startDate && r.UpdatedAt <= endDate);
 
-        return new Dictionary<string, decimal>
+        return new BrandStatisticsDto
         {
-            { "TotalRevenue", completedRequests.Sum(r => r.Service.Price) },
-            { "AverageRevenue", completedRequests.Any() ? completedRequests.Average(r => r.Service.Price) : 0 }
+            TotalServices = brand.Services.Count,
+            ActiveServices = brand.Services.Count(s => s.IsActive),
+            TotalRequests = brand.Services.Sum(s => s.ServiceRequests.Count),
+            CompletedRequests = completedRequests.Count(),
+            TotalRevenue = completedRequests.Sum(r => r.Service.Price),
+            AverageRevenue = completedRequests.Any() ? completedRequests.Average(r => r.Service.Price) : 0,
+            AverageRating = brand.Rating,
+            TotalReviews = brand.TotalReviews,
+            IsOpen = brand.IsOpen,
+            MaxCarsPerDay = brand.MaxCarsPerDay,
+            Services = mapper.Map<ICollection<ServiceDto>>(brand.Services),
+            WorkingHours = mapper.Map<ICollection<WorkingHourDto>>(brand.WorkingHours),
+            Venues = mapper.Map<ICollection<VenueDto>>(brand.Venues)
         };
     }
 
-    public async Task<IEnumerable<BrandDto>> GetPopularServicesAsync(int limit = 6)
+    public async Task<bool> BlockBrandAsync(string brandId, bool isBlocked)
     {
-        var autoServices = await _brandRepository.GetAllAsync();
-        var popularServices = autoServices
-            .OrderByDescending(a => a.Services.Sum(s => s.ServiceRequests.Count))
+        await permissionService.EnsurePermissionAsync("brand_block_toggle");
+        var brand = (await brandRepository.FindAsync(b => b.Id == brandId))
+            .FirstOrDefault()
+            .EnsureFound("BrandNotFound");
+
+        return await unitOfWork.StartTransactionAsync(async () =>
+        {
+            brand.IsOpen = !isBlocked;
+            await brandRepository.UpdateAsync(new[] { brand });
+            return true;
+        });
+    }
+
+    public async Task<bool> VerifyBrandAsync(string brandId, bool isVerified)
+    {
+        await permissionService.EnsurePermissionAsync("brand_verify");
+        var brand = (await brandRepository.FindAsync(b => b.Id == brandId))
+            .FirstOrDefault()
+            .EnsureFound("BrandNotFound");
+
+        return await unitOfWork.StartTransactionAsync(async () =>
+        {
+            brand.IsOpen = isVerified;
+            await brandRepository.UpdateAsync(new[] { brand });
+            return true;
+        });
+    }
+
+    public async Task<Dictionary<string, object>> GetSystemStatisticsAsync()
+    {
+        await permissionService.EnsurePermissionAsync("system_statistics_view");
+        var brands = await brandRepository.GetAllAsync();
+        var brandsList = brands.ToList();
+        var totalBrands = brandsList.Count;
+        var activeBrands = brandsList.Count(b => b.IsOpen);
+        var totalServices = brandsList.Sum(b => b.Services.Count);
+        var totalRequests = brandsList.Sum(b => b.Services.Sum(s => s.ServiceRequests.Count));
+
+        return new Dictionary<string, object>
+        {
+            { "TotalBrands", totalBrands },
+            { "ActiveBrands", activeBrands },
+            { "TotalServices", totalServices },
+            { "TotalRequests", totalRequests }
+        };
+    }
+
+    public async Task<bool> UpdateBrandStatusAsync(string brandId, string status)
+    {
+        await permissionService.EnsurePermissionAsync("brand_status_update");
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        return await unitOfWork.StartTransactionAsync(async () =>
+        {
+            brand.IsOpen = status == "Active";
+            await brandRepository.UpdateAsync([brand]);
+            return true;
+        });
+    }
+
+    public async Task<IEnumerable<BrandDto>> GetBlockedBrandsAsync()
+    {
+        await permissionService.EnsurePermissionAsync("brand_view_blocked");
+        var brands = await brandRepository.FindAsync(b => !b.IsOpen);
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+
+    public async Task<IEnumerable<BrandDto>> GetUnverifiedBrandsAsync()
+    {
+        await permissionService.EnsurePermissionAsync("brand_view_unverified");
+        var brands = await brandRepository.FindAsync(b => !b.IsOpen);
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+    public async Task<BrandDto> UpdateBrandAsync(string id, UpdateBrandDto dto)
+    {
+        await permissionService.EnsurePermissionAsync("admin_brand_update");
+        var brand = await brandRepository.GetByIdAsync(id);
+
+        await updateAutoServiceValidator.ValidateAndThrowAsync(dto);
+
+        return await unitOfWork.StartTransactionAsync(async () =>
+        {
+            mapper.Map(dto, brand);
+            await brandRepository.UpdateAsync(new[] { brand });
+            return mapper.Map<BrandDto>(brand);
+        });
+    }
+
+    public async Task<BrandDetailedInfoDto> GetAdminBrandAsync()
+    {
+        await permissionService.EnsurePermissionAsync("admin_brand_view_details");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        return mapper.Map<BrandDetailedInfoDto>(brand);
+    }
+
+    public async Task<BrandStatisticsDto> GetAdminServiceStatisticsAsync()
+    {
+        await permissionService.EnsurePermissionAsync("admin_statistics_view");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        var completedRequests = brand.Services
+            .SelectMany(s => s.ServiceRequests)
+            .Where(r => r.Status == RequestStatus.Completed);
+
+        return new BrandStatisticsDto
+        {
+            TotalServices = brand.Services.Count,
+            ActiveServices = brand.Services.Count(s => s.IsActive),
+            TotalRequests = brand.Services.Sum(s => s.ServiceRequests.Count),
+            CompletedRequests = completedRequests.Count(),
+            TotalRevenue = completedRequests.Sum(r => r.Service.Price),
+            AverageRevenue = completedRequests.Any() ? completedRequests.Average(r => r.Service.Price) : 0,
+            AverageRating = brand.Rating,
+            TotalReviews = brand.TotalReviews,
+            IsOpen = brand.IsOpen,
+            MaxCarsPerDay = brand.MaxCarsPerDay,
+            Services = mapper.Map<ICollection<ServiceDto>>(brand.Services),
+            WorkingHours = mapper.Map<ICollection<WorkingHourDto>>(brand.WorkingHours),
+            Venues = mapper.Map<ICollection<VenueDto>>(brand.Venues)
+        };
+    }
+
+    public async Task<BrandStatisticsDto> GetAdminRevenueStatisticsAsync(DateTime startDate, DateTime endDate)
+    {
+        await permissionService.EnsurePermissionAsync("admin_statistics_view");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        var completedRequests = brand.Services
+            .SelectMany(s => s.ServiceRequests)
+            .Where(r => r.Status == RequestStatus.Completed && r.CreatedAt >= startDate && r.CreatedAt <= endDate);
+
+        return new BrandStatisticsDto
+        {
+            TotalServices = brand.Services.Count,
+            ActiveServices = brand.Services.Count(s => s.IsActive),
+            TotalRequests = completedRequests.Count(),
+            CompletedRequests = completedRequests.Count(),
+            TotalRevenue = completedRequests.Sum(r => r.Service.Price),
+            AverageRevenue = completedRequests.Any() ? completedRequests.Average(r => r.Service.Price) : 0,
+            AverageRating = brand.Rating,
+            TotalReviews = brand.TotalReviews,
+            IsOpen = brand.IsOpen,
+            MaxCarsPerDay = brand.MaxCarsPerDay,
+            Services = mapper.Map<ICollection<ServiceDto>>(brand.Services),
+            WorkingHours = mapper.Map<ICollection<WorkingHourDto>>(brand.WorkingHours),
+            Venues = mapper.Map<ICollection<VenueDto>>(brand.Venues)
+        };
+    }
+
+    public async Task<bool> UpdateAdminWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime)
+    {
+        await permissionService.EnsurePermissionAsync("admin_working_hours_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        foreach (var workingHour in brand.WorkingHours)
+        {
+            workingHour.OpenTime = startTime;
+            workingHour.CloseTime = endTime;
+        }
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+
+    public async Task<bool> UpdateAdminContactInfoAsync(string phone, string email)
+    {
+        await permissionService.EnsurePermissionAsync("admin_contact_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        brand.PhoneNumber = phone;
+        brand.Email = email;
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+
+    public async Task<bool> UpdateAdminAddressAsync(string address)
+    {
+        await permissionService.EnsurePermissionAsync("admin_address_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        brand.Address = address;
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+
+    public async Task<bool> UpdateAdminDescriptionAsync(string description)
+    {
+        await permissionService.EnsurePermissionAsync("admin_description_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        brand.Description = description;
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+
+    public async Task<bool> UpdateAdminCapacityAsync(int maxConcurrentServices)
+    {
+        await permissionService.EnsurePermissionAsync("admin_capacity_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        brand.MaxCarsPerDay = maxConcurrentServices;
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+
+    public async Task<bool> ToggleAdminAvailabilityAsync(bool isAvailable)
+    {
+        await permissionService.EnsurePermissionAsync("admin_availability_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        brand.IsOpen = isAvailable;
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+
+    public async Task<bool> UpdateAdminServicesAsync(IEnumerable<ServiceEntity> services)
+    {
+        await permissionService.EnsurePermissionAsync("admin_services_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        brand.Services = services.ToList();
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+    public async Task<BrandDetailedInfoDto> GetManagerBrandInfoAsync()
+    {
+        await permissionService.EnsurePermissionAsync("manager_brand_view_details");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        return mapper.Map<BrandDetailedInfoDto>(brand);
+    }
+
+    public async Task<bool> UpdateManagerWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime)
+    {
+        await permissionService.EnsurePermissionAsync("manager_working_hours_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        foreach (var workingHour in brand.WorkingHours)
+        {
+            workingHour.OpenTime = startTime;
+            workingHour.CloseTime = endTime;
+        }
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+
+    public async Task<bool> ToggleManagerAvailabilityAsync(bool isAvailable)
+    {
+        await permissionService.EnsurePermissionAsync("manager_availability_update");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        brand.IsOpen = isAvailable;
+
+        await brandRepository.UpdateAsync(new[] { brand });
+        return true;
+    }
+
+    public async Task<BrandStatisticsDto> GetManagerDailyStatisticsAsync()
+    {
+        await permissionService.EnsurePermissionAsync("manager_statistics_view");
+        var brandId = context.GetBrandId();
+        var brand = await brandRepository.GetByIdAsync(brandId);
+
+        var today = DateTime.UtcNow.Date;
+        var completedRequests = brand.Services
+            .SelectMany(s => s.ServiceRequests)
+            .Where(r => r.Status == RequestStatus.Completed && r.CreatedAt.Date == today);
+
+        return new BrandStatisticsDto
+        {
+            TotalServices = brand.Services.Count,
+            ActiveServices = brand.Services.Count(s => s.IsActive),
+            TotalRequests = completedRequests.Count(),
+            CompletedRequests = completedRequests.Count(),
+            TotalRevenue = completedRequests.Sum(r => r.Service.Price),
+            AverageRevenue = completedRequests.Any() ? completedRequests.Average(r => r.Service.Price) : 0,
+            AverageRating = brand.Rating,
+            TotalReviews = brand.TotalReviews,
+            IsOpen = brand.IsOpen,
+            MaxCarsPerDay = brand.MaxCarsPerDay,
+            Services = mapper.Map<ICollection<ServiceDto>>(brand.Services),
+            WorkingHours = mapper.Map<ICollection<WorkingHourDto>>(brand.WorkingHours),
+            Venues = mapper.Map<ICollection<VenueDto>>(brand.Venues)
+        };
+    }
+    public async Task<IEnumerable<BrandDto>> GetAvailableBrandsAsync()
+    {
+        var brands = await brandRepository.FindAsync(b => b.IsOpen);
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+
+    public async Task<IEnumerable<BrandDto>> GetBrandsByCityAsync(string city)
+    {
+        var brands = await brandRepository.FindAsync(b => b.Address.Contains(city, StringComparison.OrdinalIgnoreCase));
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+
+    public async Task<IEnumerable<BrandDto>> GetBrandsByRatingAsync(decimal minRating)
+    {
+        var brands = await brandRepository.FindAsync(b => b.Rating >= minRating);
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+
+    public async Task<IEnumerable<BrandDto>> GetBrandsByWorkingHoursAsync(TimeSpan startTime, TimeSpan endTime)
+    {
+        var brands = await brandRepository.FindAsync(b =>
+            b.WorkingHours.Any(w => w.OpenTime <= startTime && w.CloseTime >= endTime));
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+
+    public async Task<IEnumerable<BrandDto>> GetBrandsByPriceRangeAsync(decimal minPrice, decimal maxPrice)
+    {
+        var brands = await brandRepository.FindAsync(b =>
+            b.Services.Any(s => s.Price >= minPrice && s.Price <= maxPrice));
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
+    }
+
+    public async Task<IEnumerable<BrandDto>> GetPopularBrandsAsync(int limit = 10)
+    {
+        var brands = await brandRepository.GetAllAsync();
+        var popularBrands = brands
+            .OrderByDescending(b => b.Services.Sum(s => s.ServiceRequests.Count))
             .Take(limit);
 
-        return _mapper.Map<IEnumerable<BrandDto>>(popularServices);
+        return mapper.Map<IEnumerable<BrandDto>>(popularBrands);
     }
 
-    public async Task<bool> UpdateWorkingHoursAsync(string autoServiceId, TimeSpan startTime, TimeSpan endTime)
+    public async Task<BrandDetailedInfoDto> GetBrandByIdAsync(string id)
     {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
-        {
-            autoService.WorkingHours.Add(new WorkingHourEntity
-            {
-                OpenTime = startTime,
-                CloseTime = endTime,
-                Day = DayOfWeek.Monday
-            });
-            await _brandRepository.UpdateAsync(new[] { autoService });
-            return true;
-        });
+        var brand = await brandRepository.GetByIdAsync(id);
+        return mapper.Map<BrandDetailedInfoDto>(brand);
     }
 
-    public async Task<bool> UpdateContactInfoAsync(string autoServiceId, string phone, string email)
+    public async Task<IEnumerable<BrandDto>> GetVerifiedBrandsAsync()
     {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
-        {
-            autoService.PhoneNumber = phone;
-            autoService.Email = email;
-            await _brandRepository.UpdateAsync(new[] { autoService });
-            return true;
-        });
+        var brands = await brandRepository.FindAsync(b => b.IsOpen);
+        return mapper.Map<IEnumerable<BrandDto>>(brands);
     }
 
-    public async Task<bool> UpdateAddressAsync(string autoServiceId, string address)
+    public async Task<BrandDetailedInfoDto> GetBrandDetailedInfoAsync(string brandId)
     {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
-        {
-            autoService.Address = address;
-            await _brandRepository.UpdateAsync(new[] { autoService });
-            return true;
-        });
-    }
-
-    public async Task<bool> UpdateDescriptionAsync(string autoServiceId, string description)
-    {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
-        {
-            autoService.Description = description;
-            await _brandRepository.UpdateAsync(new[] { autoService });
-            return true;
-        });
-    }
-
-    public async Task<bool> UpdateRatingAsync(string autoServiceId, decimal newRating)
-    {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
-        {
-            autoService.Rating = newRating;
-            await _brandRepository.UpdateAsync(new[] { autoService });
-            return true;
-        });
-    }
-
-    public async Task<IEnumerable<BrandDto>> GetNearbyServicesAsync(double latitude, double longitude, double radiusKm)
-    {
-        var autoServices = await _brandRepository.GetAllAsync();
-        var nearbyServices = autoServices
-            .Where(a => CalculateDistance(latitude, longitude, a.Latitude, a.Longitude) <= radiusKm)
-            .OrderBy(a => CalculateDistance(latitude, longitude, a.Latitude, a.Longitude));
-
-        return _mapper.Map<IEnumerable<BrandDto>>(nearbyServices);
-    }
-
-    public async Task<Dictionary<string, int>> GetTechnicianWorkloadAsync(string autoServiceId)
-    {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        var activeRequests = autoService.Services
-            .SelectMany(s => s.ServiceRequests)
-            .Where(r => r.Status == RequestStatus.Processed || r.Status == RequestStatus.Confirmed);
-
-        return activeRequests
-            .GroupBy(r => r.UserId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Count()
-            );
-    }
-
-    public async Task<bool> UpdateCapacityAsync(string autoServiceId, int maxConcurrentServices)
-    {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
-        {
-            autoService.MaxCarsPerDay = maxConcurrentServices;
-            await _brandRepository.UpdateAsync(new[] { autoService });
-            return true;
-        });
-    }
-
-    public async Task<Dictionary<string, decimal>> GetAverageServiceTimeAsync(string autoServiceId)
-    {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        var completedRequests = autoService.Services
-            .SelectMany(s => s.ServiceRequests)
-            .Where(r => r.Status == RequestStatus.Completed && r.UpdatedAt.HasValue);
-
-        return new Dictionary<string, decimal>
-        {
-            { "AverageServiceTime", completedRequests.Any()
-                ? (decimal)completedRequests.Average(r => (r.UpdatedAt!.Value - r.CreatedAt).TotalHours)
-                : 0 }
-        };
-    }
-
-    public async Task<IEnumerable<BrandDto>> GetByAvailabilityAsync(bool isAvailable)
-    {
-        var autoServices = await _brandRepository.FindAsync(a => a.IsOpen == isAvailable);
-        return _mapper.Map<IEnumerable<BrandDto>>(autoServices);
-    }
-
-    public async Task<bool> ToggleAvailabilityAsync(string autoServiceId, bool isAvailable)
-    {
-        var autoService = await _brandRepository.GetByIdAsync(autoServiceId)
-            .EnsureFound("AutoServiceNotFound");
-
-        return await _unitOfWork.StartTransactionAsync(async () =>
-        {
-            autoService.IsOpen = isAvailable;
-            await _brandRepository.UpdateAsync(new[] { autoService });
-            return true;
-        });
-    }
-
-    private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
-    {
-        const double EarthRadiusKm = 6371;
-        var dLat = ToRadians(lat2 - lat1);
-        var dLon = ToRadians(lon2 - lon1);
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-        return EarthRadiusKm * c;
-    }
-
-    private double ToRadians(double degrees)
-    {
-        return degrees * Math.PI / 180;
+        var brand = await brandRepository.GetByIdAsync(brandId);
+        return mapper.Map<BrandDetailedInfoDto>(brand);
     }
 }

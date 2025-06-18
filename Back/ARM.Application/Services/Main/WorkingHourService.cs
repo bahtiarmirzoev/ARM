@@ -46,7 +46,7 @@ public class WorkingHourService : IWorkingHourService
             workingHourEntity.OpenTime = dto.OpenTime;
             workingHourEntity.CloseTime = dto.CloseTime;
             await _workingHourRepository.AddAsync(workingHourEntity);
-            
+
             return _mapper.Map<WorkingHourDto>(workingHourEntity);
         });
     }
@@ -55,14 +55,14 @@ public class WorkingHourService : IWorkingHourService
     {
         var existingWorkingHour = await _workingHourRepository.GetByIdAsync(id);
         await _updateWorkingHourValidator.ValidateAndThrowAsync(dto);
-        
+
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             existingWorkingHour.Day = Enum.Parse<DayOfWeek>(dto.DayOfWeek.ToString());
             existingWorkingHour.OpenTime = dto.OpenTime;
             existingWorkingHour.CloseTime = dto.CloseTime;
             await _workingHourRepository.UpdateAsync([existingWorkingHour]);
-            
+
             return _mapper.Map<WorkingHourDto>(existingWorkingHour);
         });
     }
@@ -102,4 +102,4 @@ public class WorkingHourService : IWorkingHourService
         var workingHours = await _workingHourRepository.FindAsync(wh => wh.Day == day);
         return _mapper.Map<IEnumerable<WorkingHourDto>>(workingHours);
     }
-} 
+}

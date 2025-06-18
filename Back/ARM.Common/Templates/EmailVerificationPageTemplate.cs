@@ -171,7 +171,7 @@ public static class EmailVerificationPageTemplate
             <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z' fill='currentColor'/>
         </svg>
         <h2>Verification Failed</h2>
-        <p>{message}</p>
+        <p>An error occurred during confirmation. Try again later</p>
         <a href='/' class='button'>Return to Home</a>
     </div>
 </body>
@@ -195,7 +195,7 @@ public static class EmailVerificationPageTemplate
             <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z' fill='currentColor'/>
         </svg>
         <h2>Ошибка Подтверждения</h2>
-        <p>{message}</p>
+        <p>Произошла ошибка при подтверждении. Попробуйте позже</p>
         <a href='/' class='button'>Вернуться на Главную</a>
     </div>
 </body>
@@ -219,7 +219,7 @@ public static class EmailVerificationPageTemplate
             <path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z' fill='currentColor'/>
         </svg>
         <h2>Təsdiq Uğursuz Oldu</h2>
-        <p>{message}</p>
+        <p>Təsdiqdə səhv oldu. Daha sonra cəhd edin</p>
         <a href='/' class='button'>Ana Səhifəyə Qayıt</a>
     </div>
 </body>

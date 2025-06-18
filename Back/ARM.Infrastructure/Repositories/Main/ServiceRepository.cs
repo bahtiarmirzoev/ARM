@@ -17,6 +17,7 @@ public class ServiceRepository : IServiceRepository
     public async Task<ServiceEntity> GetByIdAsync(string id)
         => await _context.Services
                .Include(s => s.Venues)
+               .Include(s => s.ServiceRequests)
                .AsNoTracking()
                .FirstOrDefaultAsync(s => s.Id == id)
            ?? throw new AppException(ExceptionType.NotFound, "ServiceNotFound");
@@ -25,6 +26,7 @@ public class ServiceRepository : IServiceRepository
     {
         var services = await _context.Services
             .Include(s => s.Venues)
+            .Include(s => s.ServiceRequests)
             .AsNoTracking()
             .ToListAsync();
 

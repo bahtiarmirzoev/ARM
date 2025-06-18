@@ -16,14 +16,14 @@ public class PermissionRepository : IPermissionRepository
 
     public async Task<PermissionEntity> GetByIdAsync(string id)
         => await _context.Permissions
-               .AsNoTracking()
+               .Include(p => p.Roles)
                .FirstOrDefaultAsync(p => p.Id == id)
            ?? throw new AppException(ExceptionType.NotFound, "PermissionNotFound");
 
     public async Task<IEnumerable<PermissionEntity>> GetAllAsync()
     {
         var permissions = await _context.Permissions
-            .AsNoTracking()
+            .Include(p => p.Roles)
             .ToListAsync();
 
         return permissions;
@@ -61,7 +61,7 @@ public class PermissionRepository : IPermissionRepository
 
     public async Task<ICollection<PermissionEntity>> FindAsync(Expression<Func<PermissionEntity, bool>> predicate)
         => await _context.Permissions
-            .AsNoTracking()
+            .Include(p => p.Roles)
             .Where(predicate)
             .ToListAsync();
 }

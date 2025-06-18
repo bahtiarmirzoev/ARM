@@ -17,7 +17,6 @@ public class RoleRepository : IRoleRepository
     public async Task<RoleEntity> GetByIdAsync(string id)
         => await _context.Roles
                .Include(r => r.Permissions)
-               .AsNoTracking()
                .FirstOrDefaultAsync(r => r.Id == id)
            ?? throw new AppException(ExceptionType.NotFound, "RoleNotFound");
 
@@ -25,7 +24,6 @@ public class RoleRepository : IRoleRepository
     {
         var roles = await _context.Roles
             .Include(r => r.Permissions)
-            .AsNoTracking()
             .ToListAsync();
 
         return roles;
@@ -66,7 +64,6 @@ public class RoleRepository : IRoleRepository
     public async Task<ICollection<RoleEntity>> FindAsync(Expression<Func<RoleEntity, bool>> predicate)
         => await _context.Roles
             .Include(r => r.Permissions)
-            .AsNoTracking()
             .Where(predicate)
             .ToListAsync();
 }

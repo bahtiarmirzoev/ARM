@@ -56,6 +56,7 @@ public class CustomerRepository : ICustomerRepository
                     .SetProperty(c => c.Address, customer.Address)
                     .SetProperty(c => c.ProfilePicture, customer.ProfilePicture)
                     .SetProperty(c => c.EmailVerified, customer.EmailVerified)
+                    .SetProperty(c => c.TwoFaEnabled, customer.TwoFaEnabled)
                     .SetProperty(c => c.UpdatedAt, DateTime.UtcNow));
 
             if (result == 0)

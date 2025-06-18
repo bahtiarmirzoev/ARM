@@ -45,7 +45,6 @@ public class UserRepository : IUserRepository
                     .SetProperty(u => u.Surname, user.Surname)
                     .SetProperty(u => u.Email, user.Email)
                     .SetProperty(u => u.Password, user.Password)
-                    .SetProperty(u => u.EmailVerified, user.EmailVerified)
                     .SetProperty(u => u.RoleId, user.RoleId)
                     .SetProperty(u => u.UpdatedAt, DateTime.UtcNow));
 

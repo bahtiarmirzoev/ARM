@@ -13,16 +13,18 @@ public class BrandRepository : IBrandRepository
 
     public BrandRepository(ARMContext context)
             => _context = context;
-    
+
     public async Task<BrandEntity> GetByIdAsync(string id)
         => await _context.Brands
                .Include(ar => ar.Venues)
                .ThenInclude(v => v.Services)
                .Include(ar => ar.Reviews)
                .Include(ar => ar.WorkingHours)
+               .Include(ar => ar.Services)
+               .ThenInclude(s => s.ServiceRequests)
                .AsNoTracking()
                .FirstOrDefaultAsync(ar => ar.Id == id)
-           ?? throw new AppException(ExceptionType.NotFound, "BrandNotFound"); 
+           ?? throw new AppException(ExceptionType.NotFound, "BrandNotFound");
 
     public async Task<IEnumerable<BrandEntity>> GetAllAsync()
     {
@@ -31,6 +33,8 @@ public class BrandRepository : IBrandRepository
             .ThenInclude(v => v.Services)
             .Include(ar => ar.Reviews)
             .Include(ar => ar.WorkingHours)
+            .Include(ar => ar.Services)
+            .ThenInclude(s => s.ServiceRequests)
             .AsNoTracking()
             .ToListAsync();
 
@@ -59,7 +63,7 @@ public class BrandRepository : IBrandRepository
                     .SetProperty(ar => ar.TotalReviews, brand.TotalReviews)
                     .SetProperty(ar => ar.UpdatedAt, DateTime.UtcNow));
 
-            if (result == 0) 
+            if (result == 0)
                 throw new AppException(ExceptionType.NotFound, "BrandNotFound");
         }
     }
@@ -74,8 +78,8 @@ public class BrandRepository : IBrandRepository
             .Where(ar => ar.Id == id)
             .ExecuteDeleteAsync();
 
-        if (result == 0) 
-            throw new AppException(ExceptionType.NotFound,"BrandNotFound");
+        if (result == 0)
+            throw new AppException(ExceptionType.NotFound, "BrandNotFound");
     }
 
     public async Task<bool> AnyAsync(Expression<Func<BrandEntity, bool>> predicate)
@@ -87,6 +91,8 @@ public class BrandRepository : IBrandRepository
             .ThenInclude(v => v.Services)
             .Include(ar => ar.Reviews)
             .Include(ar => ar.WorkingHours)
+            .Include(ar => ar.Services)
+            .ThenInclude(s => s.ServiceRequests)
             .AsNoTracking()
             .Where(predicate)
             .ToListAsync();

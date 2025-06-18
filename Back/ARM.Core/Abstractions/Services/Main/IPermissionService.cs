@@ -14,4 +14,5 @@ public interface IPermissionService
     Task<IEnumerable<PermissionDto>> GetAllAsync();
     Task<PermissionDto> GetByNameAsync(string name);
     Task<IEnumerable<PermissionDto>> GetByRoleIdAsync(string roleId);
+    Task EnsurePermissionAsync(string permissionName);
 } 

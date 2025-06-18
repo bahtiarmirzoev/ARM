@@ -27,7 +27,7 @@ public class ExecuteController : ControllerBase
 
         foreach (var item in request.Requests)
         {
-            var commandType = assembly.GetTypes().FirstOrDefault(t => t.Name == item.Action);
+            var commandType = assembly.GetTypes().FirstOrDefault(t => t.Name == item.Operation);
             if (commandType is null)
             {
                 results.Add(new

@@ -13,6 +13,7 @@ public class CustomerDto
     public string Address { get; set; } = string.Empty;
     public string? ProfilePicture { get; set; }
     public bool EmailVerified { get; set; }
+    public bool TwoFaEnabled { get; set; }
     public ICollection<CarDto> Cars { get; set; } = [];
     public ICollection<RepairOrderDto> RepairOrders { get; set; } = [];
     public ICollection<ReviewDto> Reviews { get; set; } = [];

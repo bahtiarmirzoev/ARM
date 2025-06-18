@@ -1,4 +1,5 @@
-﻿using static ARM.Common.Templates.EmailVerificationPageTemplate;
+﻿using ARM.RequestPipeline.Commands.Customer;
+using static ARM.Common.Templates.EmailVerificationPageTemplate;
 using ARM.RequestPipeline.Commands.User;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

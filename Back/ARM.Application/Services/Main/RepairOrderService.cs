@@ -25,6 +25,8 @@ public class RepairOrderService : IRepairOrderService
     private readonly IValidator<UpdateRepairOrderDto> _updateRepairOrderValidator;
     private readonly IUnitOfWork _unitOfWork;
 
+    private HttpContext context => _httpContextAccessor.HttpContext;
+
     public RepairOrderService(
         IMapper mapper,
         IHttpContextAccessor httpContextAccessor,
@@ -41,18 +43,9 @@ public class RepairOrderService : IRepairOrderService
         _unitOfWork = unitOfWork;
     }
 
-    private string GetCustomerId()
-    {
-        var customerId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(customerId))
-            throw new AppException(ExceptionType.UnauthorizedAccess, "Unauthorized");
-
-        return customerId;
-    }
-
     public async Task<RepairOrderDto> CreateAsync(CreateRepairOrderDto dto)
     {
-        var customerId = GetCustomerId();
+        var customerId = context.GetCustomerId();
         await _createRepairOrderValidator.ValidateAndThrowAsync(dto);
 
         return await _unitOfWork.StartTransactionAsync(async () =>
@@ -70,7 +63,7 @@ public class RepairOrderService : IRepairOrderService
 
     public async Task<RepairOrderDto> UpdateAsync(string id, UpdateRepairOrderDto dto)
     {
-        var customerId = GetCustomerId();
+        var customerId = context.GetCustomerId();
         var existingOrder = (await _repairOrderRepository.FindAsync(
                 o => o.Id == id && o.CustomerId == customerId))
             .FirstOrDefault()
@@ -89,7 +82,7 @@ public class RepairOrderService : IRepairOrderService
 
     public async Task<bool> DeleteAsync(string id)
     {
-        var customerId = GetCustomerId();
+        var customerId = context.GetCustomerId();
         var order = (await _repairOrderRepository.FindAsync(
                 o => o.Id == id && o.CustomerId == customerId))
             .FirstOrDefault()
@@ -104,29 +97,33 @@ public class RepairOrderService : IRepairOrderService
 
     public async Task<RepairOrderDto> GetByIdAsync(string id)
     {
-        var order = await _repairOrderRepository.GetByIdAsync(id);
+        var customerId = context.GetCustomerId();
+        var order = await _repairOrderRepository.FindAsync(o => o.Id == id && o.CustomerId == customerId)
+            .EnsureFound("RepairOrderNotFound");
         return _mapper.Map<RepairOrderDto>(order);
     }
 
     public async Task<IEnumerable<RepairOrderDto>> GetAllAsync()
     {
-        var customerId = GetCustomerId();
+        var customerId = context.GetCustomerId();
         var orders = await _repairOrderRepository.FindAsync(u => u.CustomerId == customerId);
         return _mapper.Map<IEnumerable<RepairOrderDto>>(orders);
     }
 
     public async Task<IEnumerable<RepairOrderDto>> GetByAutoServiceIdAsync(string autoServiceId)
     {
-        var orders = await _repairOrderRepository.FindAsync(o => o.AutoServiceId == autoServiceId);
+        var customerId = context.GetCustomerId();
+        var orders = await _repairOrderRepository.FindAsync(o => o.AutoServiceId == autoServiceId && o.CustomerId == customerId);
         return _mapper.Map<IEnumerable<RepairOrderDto>>(orders);
     }
 
     public async Task<IEnumerable<RepairOrderDto>> GetByStatusAsync(string status)
     {
+        var customerId = context.GetCustomerId();
         if (!Enum.TryParse<ServiceStatus>(status, out var serviceStatus))
             throw new AppException(ExceptionType.BadRequest, "InvalidServiceStatus");
 
-        var orders = await _repairOrderRepository.FindAsync(o => o.ServiceStatus == serviceStatus);
+        var orders = await _repairOrderRepository.FindAsync(o => o.ServiceStatus == serviceStatus && o.CustomerId == customerId);
         return _mapper.Map<IEnumerable<RepairOrderDto>>(orders);
     }
 }

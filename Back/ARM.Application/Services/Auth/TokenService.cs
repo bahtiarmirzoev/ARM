@@ -26,9 +26,10 @@ public class TokenService : ITokenService
     {
         var claims = new List<Claim>
         {
-            new("userId", user.Id),
+            new("user", user.Id),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Role, user.Role.Name),
+            new("roleId", user.Role.Id)
         };
 
         switch (user.Role.Name)
@@ -37,9 +38,8 @@ public class TokenService : ITokenService
             case "Manager":
                 if (!string.IsNullOrWhiteSpace(user.BrandId))
                 {
-                    claims.Add(new Claim("autoServiceId", user.BrandId));
+                    claims.Add(new Claim("brand", user.BrandId));
                     claims.Add(new Claim("panel", user.Role.Name));
-
                 }
                 break;
             case "SuperAdmin":
@@ -54,10 +54,10 @@ public class TokenService : ITokenService
     {
         var claims = new List<Claim>
         {
-            new("customerId", customer.Id),
+            new("customer", customer.Id),
             new(ClaimTypes.Email, customer.Email),
             new(ClaimTypes.Role, "customer"),
-            new("panel", "customer"),
+            new("panel", "Customer"),
         };
 
         return GenerateToken(claims);

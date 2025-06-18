@@ -13,7 +13,6 @@ public class UserEntity
     public string PhoneNumber { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
     public string? ProfilePicture { get; set; }
-    public bool EmailVerified { get; set; }
     public string RoleId { get; set; } = string.Empty;
     public RoleEntity Role { get; set; } = null!;
     public string? BrandId { get; set; } = string.Empty;

@@ -17,6 +17,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
     public async Task<ServiceRequestEntity> GetByIdAsync(string id)
         => await _context.MakeOrderRequests
                .Include(m => m.Brand)
+               .Include(m => m.Service)
                .AsNoTracking()
                .FirstOrDefaultAsync(m => m.Id == id)
            ?? throw new AppException(ExceptionType.NotFound, "MakeOrderRequestNotFound");
@@ -25,6 +26,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
     {
         var orders = await _context.MakeOrderRequests
             .Include(m => m.Brand)
+            .Include(m => m.Service)
             .AsNoTracking()
             .ToListAsync();
 
@@ -73,6 +75,7 @@ public class ServiceRequestRepository : IServiceRequestRepository
     public async Task<ICollection<ServiceRequestEntity>> FindAsync(Expression<Func<ServiceRequestEntity, bool>> predicate)
         => await _context.MakeOrderRequests
             .Include(m => m.Brand)
+            .Include(m => m.Service)
             .AsNoTracking()
             .Where(predicate)
             .ToListAsync();

@@ -31,7 +31,7 @@ public class CustomerAuthService(
     private const int RefreshTokenLifespanDays = 7;
     private HttpContext httpContext => httpContextAccessor.HttpContext;
     private HttpRequest httpRequest => httpContext.Request;
-    public async Task<bool> LoginAsync(CustomerLoginDto loginDto)
+    public async Task<LoginResponseDto> LoginAsync(CustomerLoginDto loginDto)
     {
         if (loginDto is null || string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
             throw new AppException(ExceptionType.InvalidRequest, "EmailAndPasswordCannotBeEmpty");
@@ -39,18 +39,35 @@ public class CustomerAuthService(
         if (!Regex.IsMatch(loginDto.Email, EmailRegex))
             throw new AppException(ExceptionType.InvalidRequest, "InvalidEmailFormat");
 
-        var customer = await customerService.GetCustomerByEmailAsync(loginDto.Email)
-                       ?? throw new AppException(ExceptionType.InvalidRequest, "CustomerDoesNotExist");
+        var customer = await customerService.GetCustomerByEmailAsync(loginDto.Email);
 
         var credentials = await customerService.GetCustomerCredentialsByIdAsync(customer.Id);
 
         if (!Verify(loginDto.Password, credentials.Password))
             throw new AppException(ExceptionType.InvalidRequest, "InvalidEmailOrPassword");
         
-        var otpCode = await otpService.GenerateAndSaveOtpAsync(customer.Id);
-        
-        await emailService.SendOtpAsync(customer.Email, otpCode);
-        return false;
+        if (customer.TwoFaEnabled)
+        {
+            var otpCode = await otpService.GenerateAndSaveOtpAsync(customer.Id);
+            await emailService.SendOtpAsync(customer.Email, otpCode);
+            return new LoginResponseDto { S2Fa = true };
+        }
+        var accessToken = tokenService.GenerateAccessToken(customer);
+        var refreshToken = tokenService.GenerateRefreshToken();
+        var refreshExpiry = DateTime.UtcNow.AddDays(RefreshTokenLifespanDays);
+
+        await userActiveSessionsService.AddUserActiveSessionAsync(new CreateUserActiveSessionDto
+        {
+            UserId = customer.Id,
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            RefreshTokenExpiryTime = refreshExpiry,
+            DeviceInfo = httpRequest.GetDeviceInfo()
+        });
+
+        httpContext.SetAuthCookies(accessToken, refreshToken);
+
+        return new LoginResponseDto { S2Fa = false };
     }
 
     public async Task<string> RegisterAsync(CreateCustomerDto customerDto)
@@ -117,7 +134,7 @@ public class CustomerAuthService(
 
         httpContext.SetAuthCookies(accessToken, refreshToken);
         
-        await emailService.SendMessageAsync(customer.Email);
+        await emailService.SendMessageAsync(customer.Email, customer.Name, customer.Surname);
         await otpService.ClearOtpAndPendingCustomerAsync(customerId);
 
         return true;

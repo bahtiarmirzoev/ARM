@@ -51,7 +51,6 @@ public class ARMSedder
                 Password = HashPassword("ChangeMe123!"), 
                 RoleId = superAdminRole.Id,
                 IsActive = true,
-                EmailVerified = true,
                 BrandId = null
             };
             await _context.Users.AddAsync(superAdmin);

@@ -28,6 +28,8 @@ public class CustomerService : ICustomerService
     private readonly IValidator<UpdateCustomerDto> _updateValidator;
     private readonly IUnitOfWork _unitOfWork;
 
+    private HttpContext context => _httpContextAccessor.HttpContext;
+
     public CustomerService(
         IMapper mapper,
         IHttpContextAccessor httpContextAccessor,
@@ -43,14 +45,23 @@ public class CustomerService : ICustomerService
         _updateValidator = updateValidator;
         _unitOfWork = unitOfWork;
     }
-    
-    private HttpContext httpContext => _httpContextAccessor.HttpContext;
-    
+
     public async Task<PublicCustomerDto> GetCurrentCustomerAsync()
     {
-        var userId = httpContext.GetCustomerId();
-        var user = await _customerRepository.GetByIdAsync(userId);
-        return _mapper.Map<PublicCustomerDto>(user); 
+        var customerId = context.GetCustomerId();
+        var user = await _customerRepository.GetByIdAsync(customerId);
+        return _mapper.Map<PublicCustomerDto>(user);
+    }
+
+    public async Task<CustomerDto> ConfirmEmailAsync()
+    {
+        var customerId = context.GetCustomerId();
+        var customer = await _customerRepository.GetByIdAsync(customerId);
+        customer.EmailVerified = true;
+        await _customerRepository.UpdateAsync([customer]);
+        await _unitOfWork.SaveChangesAsync();
+
+        return _mapper.Map<CustomerDto>(customer);
     }
 
     public async Task<CustomerDto> CreateAsync(CreateCustomerDto dto)
@@ -77,9 +88,9 @@ public class CustomerService : ICustomerService
 
     public async Task<CustomerDto> UpdateAsync(string id, UpdateCustomerDto dto)
     {
-        var existingCustomer = (await _customerRepository.FindAsync(
-                c => c.Id == id))
-            .FirstOrDefault()
+
+        var existingCustomer = await _customerRepository.FindAsync(
+                c => c.Id == id)
             .EnsureFound("CustomerNotFound");
 
         await _updateValidator.ValidateAndThrowAsync(dto);
@@ -93,7 +104,7 @@ public class CustomerService : ICustomerService
         return await _unitOfWork.StartTransactionAsync(async () =>
         {
             _mapper.Map(dto, existingCustomer);
-            await _customerRepository.UpdateAsync(new[] { existingCustomer });
+            await _customerRepository.UpdateAsync(existingCustomer);
 
             return _mapper.Map<CustomerDto>(existingCustomer);
         });
@@ -101,12 +112,12 @@ public class CustomerService : ICustomerService
 
     public async Task<bool> DeleteAsync(string id)
     {
-        var customer = (await _customerRepository.FindAsync(
-                c => c.Id == id))
-            .FirstOrDefault()
+
+        var customer = await _customerRepository.FindAsync(
+                c => c.Id == id)
             .EnsureFound("CustomerNotFound");
 
-        await _customerRepository.DeleteAsync(customer.Id);
+        await _customerRepository.DeleteAsync(id);
         await _unitOfWork.SaveChangesAsync();
 
         return true;
@@ -114,29 +125,34 @@ public class CustomerService : ICustomerService
 
     public async Task<CustomerDto> GetByIdAsync(string id)
     {
-        var customer = await _customerRepository.GetByIdAsync(id);
+
+        var customer = (await _customerRepository.FindAsync(c => c.Id == id))
+            .FirstOrDefault()
+            .EnsureFound("CustomerNotFound");
         return _mapper.Map<CustomerDto>(customer);
     }
 
     public async Task<IEnumerable<CustomerDto>> GetAllAsync()
     {
-        var customerId = httpContext.GetCustomerId();
-        var customers = await _customerRepository.FindAsync(c => c.Id == customerId);
+        var customers = await _customerRepository.GetAllAsync();
         return _mapper.Map<IEnumerable<CustomerDto>>(customers);
     }
 
     public async Task<CustomerDto> GetCustomerByEmailAsync(string email)
     {
-        var customer = (await _customerRepository.FindAsync(
-            c => c.Email == email))
-            .FirstOrDefault();
-        
+
+        var customer = (await _customerRepository.FindAsync
+            (c => c.Email == email))
+            .FirstOrDefault()
+            .EnsureFound("CustomerDoesNotExist");
         return _mapper.Map<CustomerDto>(customer);
     }
 
     public async Task<CustomerCredentialsDto> GetCustomerCredentialsByIdAsync(string id)
     {
-        var customer = await _customerRepository.GetByIdAsync(id);
+        var customer = (await _customerRepository.FindAsync(c => c.Id == id))
+            .FirstOrDefault()
+            .EnsureFound("CustomerNotFound");
 
         return new CustomerCredentialsDto
         {

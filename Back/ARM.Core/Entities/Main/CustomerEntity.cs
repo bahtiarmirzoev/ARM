@@ -14,6 +14,7 @@ public class CustomerEntity
     public bool IsActive { get; set; } = true;
     public string? ProfilePicture { get; set; }
     public bool EmailVerified { get; set; }
+    public bool TwoFaEnabled { get; set; } = false;
     public ICollection<CarEntity> Cars { get; set; } = [];
     public ICollection<RepairOrderEntity> RepairOrders { get; set; } = [];
     public ICollection<ReviewEntity> Reviews { get; set; } = [];

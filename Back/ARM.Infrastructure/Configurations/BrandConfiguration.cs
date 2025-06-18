@@ -19,14 +19,11 @@ public class BrandConfiguration : IEntityTypeConfiguration<BrandEntity>
         builder.Property(x => x.PhoneNumber).IsRequired().HasMaxLength(20);
         builder.Property(x => x.Address).IsRequired().HasMaxLength(200);
         builder.Property(x => x.Email).IsRequired().HasMaxLength(100);
-        builder.Property(x => x.Latitude).HasPrecision(10, 6);
-        builder.Property(x => x.Longitude).HasPrecision(10, 6);
         builder.Property(x => x.IsOpen).IsRequired().HasDefaultValue(true);
         
         builder.HasIndex(x => x.Name).IsUnique();
         builder.HasIndex(x => x.Email).IsUnique();
         builder.HasIndex(x => x.PhoneNumber).IsUnique();
-        builder.HasIndex(x => new { x.Latitude, x.Longitude });
 
         builder.Property(ar => ar.MaxCarsPerDay).IsRequired().HasDefaultValue(0);
         builder.Property(ar => ar.HasParking).IsRequired().HasDefaultValue(false);
