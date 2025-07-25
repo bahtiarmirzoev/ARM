@@ -256,7 +256,6 @@ export default function ReviewsPage() {
 
             {/* Clear Filters */}
             <Button
-              variant="outline"
               onClick={() => {
                 setSearchTerm("");
                 setSelectedRating("all");

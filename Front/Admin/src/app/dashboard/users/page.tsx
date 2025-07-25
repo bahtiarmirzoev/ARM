@@ -184,7 +184,6 @@ export default function UsersPage() {
 
             {/* Clear Filters */}
             <Button
-              variant="outline"
               onClick={() => {
                 setSearchTerm("");
                 setSelectedRole("all");
@@ -262,8 +261,6 @@ export default function UsersPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
                         <Button
-                          variant="outline"
-                          size="sm"
                           onClick={() => handleToggleStatus(user.id, user.isActive)}
                           disabled={currentUser?.id === user.id}
                         >
@@ -271,8 +268,6 @@ export default function UsersPage() {
                         </Button>
                         {currentUser?.role === "admin" && currentUser?.id !== user.id && (
                           <Button
-                            variant="destructive"
-                            size="sm"
                             onClick={() => handleDeleteUser(user.id)}
                           >
                             Удалить

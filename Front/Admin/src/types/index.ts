@@ -214,4 +214,27 @@ export interface TableColumn<T> {
 export interface SortConfig {
   key: string;
   direction: "asc" | "desc";
+}
+
+export interface ServiceRequest {
+  id: string;
+  name: string;
+  phone: string;
+  technicalPassport: string;
+  make: string;
+  model: string;
+  problemDescription: string;
+  status: string;
+  carPlate: string;
+  year?: number;
+  preferredDate: string;
+  email: string;
+  requestDate: string;
+  autoRepairId: string;
+  brandId?: string;
+  serviceId?: string;
+  userId?: string;
+  isProcessed: boolean;
+  createdAt: string;
+  updatedAt?: string;
 } 

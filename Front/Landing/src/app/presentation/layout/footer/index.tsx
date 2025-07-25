@@ -239,7 +239,6 @@ export default function Footer() {
             </ul>
             <div className="mt-6">
               <Badge
-                variant="outline"
                 className="border-green-500 text-green-400"
               >
                 <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>

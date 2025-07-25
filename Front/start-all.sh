@@ -1,10 +1,21 @@
 #!/bin/bash
 
-# ARM Frontend Projects - Start All Script
-# Запускает все фронтенд проекты одновременно
+# ARM Fullstack Projects - Start All Script
+# Запускает backend и все frontend проекты одновременно
 
-echo "🚀 Запуск всех ARM Frontend проектов..."
+# --- BACKEND ---
+echo "🚀 Запуск ARM Backend (API)..."
+cd ../Back/ARM.Presentation || exit 1
 
+dotnet build
+nohup dotnet run --urls "http://localhost:5000" > ../../Front/backend.log 2>&1 &
+BACKEND_PID=$!
+echo $BACKEND_PID > ../../Front/backend.pid
+cd ../../Front
+
+echo "✅ Backend запущен (PID: $BACKEND_PID) на http://localhost:5000"
+
+# --- FRONTEND ---
 # Проверяем, что мы в правильной директории
 if [ ! -d "Customer" ] || [ ! -d "Manager" ] || [ ! -d "Admin" ]; then
     echo "❌ Ошибка: Убедитесь, что вы находитесь в директории Front/"
@@ -99,6 +110,7 @@ echo "📱 Доступные приложения:"
 echo "   🚗 Customer: http://localhost:3000"
 echo "   👔 Manager:  http://localhost:3001"
 echo "   🔧 Admin:    http://localhost:3002"
+echo "   🛠️  Backend:  http://localhost:5000/swagger"
 echo ""
 echo "🔐 Демо доступ:"
 echo "   - Email: любой"
@@ -122,6 +134,14 @@ cleanup() {
             fi
         fi
     done
+    if [ -f "backend.pid" ]; then
+        pid=$(cat backend.pid)
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "🛑 Остановка Backend (PID: $pid)..."
+            kill "$pid"
+            rm backend.pid
+        fi
+    fi
     
     echo "✅ Все проекты остановлены"
     exit 0

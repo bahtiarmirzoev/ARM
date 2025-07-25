@@ -251,7 +251,6 @@ export default function BrandsPage() {
 
             {/* Clear Filters */}
             <Button
-              variant="outline"
               onClick={() => {
                 setSearchTerm("");
                 setSelectedStatus("all");

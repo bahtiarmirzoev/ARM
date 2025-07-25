@@ -154,7 +154,6 @@ export default function CarsPage() {
 
             {/* Clear Filters */}
             <Button
-              variant="outline"
               onClick={() => {
                 setSearchTerm("");
                 setSelectedMake("all");
@@ -244,24 +243,19 @@ export default function CarsPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
                         <Button
-                          variant="outline"
-                          size="sm"
                           className="flex items-center gap-1"
                         >
                           <EyeIcon className="h-3 w-3" />
                           Просмотр
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
                           className="flex items-center gap-1"
                         >
                           <PencilIcon className="h-3 w-3" />
                           Редактировать
                         </Button>
                         <Button
-                          variant="destructive"
-                          size="sm"
+                          
                           onClick={() => handleDeleteCar(car.id)}
                           className="flex items-center gap-1"
                         >
@@ -281,14 +275,14 @@ export default function CarsPage() {
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="flex-1 flex justify-between sm:hidden">
                 <Button
-                  variant="outline"
+                
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
                 >
                   Назад
                 </Button>
                 <Button
-                  variant="outline"
+                 
                   onClick={() => setPage(page + 1)}
                   disabled={page === totalPages}
                 >
@@ -308,7 +302,6 @@ export default function CarsPage() {
                 <div>
                   <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
                     <Button
-                      variant="outline"
                       onClick={() => setPage(page - 1)}
                       disabled={page === 1}
                       className="rounded-l-md"
@@ -318,7 +311,7 @@ export default function CarsPage() {
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                       <Button
                         key={pageNum}
-                        variant={pageNum === page ? "default" : "outline"}
+                      
                         onClick={() => setPage(pageNum)}
                         className="rounded-none"
                       >
@@ -326,7 +319,6 @@ export default function CarsPage() {
                       </Button>
                     ))}
                     <Button
-                      variant="outline"
                       onClick={() => setPage(page + 1)}
                       disabled={page === totalPages}
                       className="rounded-r-md"

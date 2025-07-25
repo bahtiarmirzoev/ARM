@@ -147,7 +147,7 @@ export default function PartnersPage() {
                     <CardTitle className="text-xl">{partner.name}</CardTitle>
                     <div className="flex items-center">
                       {partner.premium && (
-                        <Badge variant="secondary" className="mr-2">
+                        <Badge className="mr-2">
                           {intl.formatMessage({
                             id: "partners.status.premium",
                           })}
@@ -203,7 +203,7 @@ export default function PartnersPage() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {partner.services.map((service, idx) => (
-                          <Badge key={idx} variant="secondary">
+                          <Badge key={idx}>
                             {service}
                           </Badge>
                         ))}

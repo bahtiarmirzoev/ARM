@@ -1,0 +1,6 @@
+Using launch settings from /Users/mac/Desktop/ARM/Back/ARM.Presentation/Properties/launchSettings.json...
+Building...
+/Users/mac/Desktop/ARM/Back/ARM.Presentation/Controllers/BrandController.cs(15,22): error CS0246: The type or namespace name 'IBrandService' could not be found (are you missing a using directive or an assembly reference?) [/Users/mac/Desktop/ARM/Back/ARM.Presentation/ARM.Presentation.csproj]
+/Users/mac/Desktop/ARM/Back/ARM.Presentation/Controllers/BrandController.cs(18,28): error CS0246: The type or namespace name 'IBrandService' could not be found (are you missing a using directive or an assembly reference?) [/Users/mac/Desktop/ARM/Back/ARM.Presentation/ARM.Presentation.csproj]
+
+The build failed. Fix the build errors and run again.

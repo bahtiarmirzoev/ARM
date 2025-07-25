@@ -7,9 +7,11 @@ import {
   brandsAPI, 
   servicesAPI, 
   reviewsAPI, 
-  dashboardAPI 
+  dashboardAPI,
+  servicerequestsAPI
 } from "@/lib/api";
 import { toast } from "react-hot-toast";
+import { ServiceRequest, PaginatedResponse } from "@/types";
 
 // Users hooks
 export const useUsers = (page = 1, pageSize = 10) => {
@@ -346,5 +348,63 @@ export const useRecentOrders = (limit = 10) => {
   return useQuery({
     queryKey: ["dashboard", "recent-orders", limit],
     queryFn: () => dashboardAPI.getRecentOrders(limit),
+  });
+}; 
+
+// Service Requests hooks
+export const useServiceRequests = (page = 1, pageSize = 10) => {
+  return useQuery<PaginatedResponse<ServiceRequest>>({
+    queryKey: ["servicerequests", page, pageSize],
+    queryFn: () => servicerequestsAPI.getAll(page, pageSize),
+  });
+};
+
+export const useServiceRequest = (id: string) => {
+  return useQuery<ServiceRequest>({
+    queryKey: ["servicerequest", id],
+    queryFn: () => servicerequestsAPI.getById(id),
+    enabled: !!id,
+  });
+};
+
+export const useCreateServiceRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ServiceRequest, any, Partial<ServiceRequest>>({
+    mutationFn: servicerequestsAPI.create,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["servicerequests"] });
+      toast.success("Заявка успешно создана");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Ошибка создания заявки");
+    },
+  });
+};
+
+export const useUpdateServiceRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ServiceRequest, any, { id: string; data: Partial<ServiceRequest> }>({
+    mutationFn: ({ id, data }: { id: string; data: Partial<ServiceRequest> }) => servicerequestsAPI.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["servicerequests"] });
+      toast.success("Заявка успешно обновлена");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Ошибка обновления заявки");
+    },
+  });
+};
+
+export const useDeleteServiceRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation<void, any, string>({
+    mutationFn: servicerequestsAPI.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["servicerequests"] });
+      toast.success("Заявка успешно удалена");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Ошибка удаления заявки");
+    },
   });
 }; 

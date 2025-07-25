@@ -184,7 +184,6 @@ export default function ServicesPage() {
 
             {/* Clear Filters */}
             <Button
-              variant="outline"
               onClick={() => {
                 setSearchTerm("");
                 setSelectedCategory("all");

@@ -332,11 +332,11 @@ export default function HomePage() {
               {intl.formatMessage({ id: "hero.description" })}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-blue-600 hover:bg-blue-700">
                 {intl.formatMessage({ id: "hero.button.start" })}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline">
+              <Button>
                 {intl.formatMessage({ id: "hero.button.demo" })}
               </Button>
             </div>
@@ -420,7 +420,7 @@ export default function HomePage() {
                   </div>
                   <div className="mt-4 space-y-2">
                     {partner.venues[0].services.map((service, index) => (
-                      <Badge key={index} variant="secondary" className="mr-2">
+                      <Badge key={index} className="mr-2">
                         {service.name}
                       </Badge>
                     ))}

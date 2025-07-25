@@ -88,7 +88,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4">
+            <Badge className="mb-4">
               {intl.formatMessage({ id: "about.badge" })}
             </Badge>
             <h1 className="text-4xl font-bold mb-6">
@@ -143,7 +143,7 @@ export default function AboutPage() {
                     <h3 className="text-lg font-semibold">{office.city}</h3>
                   </div>
                   <p className="text-muted-foreground mb-3">{office.address}</p>
-                  <Badge variant="secondary">{office.type}</Badge>
+                  <Badge>{office.type}</Badge>
                 </Card>
               ))}
             </div>

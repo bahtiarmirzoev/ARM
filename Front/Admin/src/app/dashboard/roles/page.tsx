@@ -254,7 +254,6 @@ export default function RolesPage() {
 
             {/* Clear Filters */}
             <Button
-              variant="outline"
               onClick={() => {
                 setSearchTerm("");
                 setSelectedStatus("all");

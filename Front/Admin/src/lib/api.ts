@@ -294,3 +294,30 @@ export const batchAPI = {
     return response.data;
   }
 }; 
+
+// Service Requests API
+export const servicerequestsAPI = {
+  getAll: async (page = 1, pageSize = 10): Promise<PaginatedResponse<any>> => {
+    const response: AxiosResponse<PaginatedResponse<any>> = await api.get(`/api/servicerequests?page=${page}&pageSize=${pageSize}`);
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<any> => {
+    const response: AxiosResponse<any> = await api.get(`/api/servicerequests/${id}`);
+    return response.data;
+  },
+
+  create: async (data: Partial<any>): Promise<any> => {
+    const response: AxiosResponse<any> = await api.post("/api/servicerequests", data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<any>): Promise<any> => {
+    const response: AxiosResponse<any> = await api.put(`/api/servicerequests/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/api/servicerequests/${id}`);
+  }
+}; 
